@@ -338,82 +338,88 @@ export default class MysNews extends base {
       return img[0]
     } else {
       let msg = [titile, ...img]
-      return await common.makeForwardMsg(this.e, msg, titile)
+      return await common.makeForwardMsg(this.e, msg, titile).catch((err) => {
+        logger.error(err)
+      })
     }
   }
 
   async mysNewsTask (type = 1) {
-    let typeName = '公告'
-    let mode = 'announceGroup'
-    if (type == 3) {
-      typeName = '资讯'
-      mode = 'infoGroup'
-    }
-
     let cfg = gsCfg.getConfig('mys', 'pushNews')
-    if (cfg[mode].length <= 0) return
 
     // 推送2小时内的公告资讯
     let interval = 7200
     // 最多同时推送两条
-    let maxNum = 1
+    this.maxNum = cfg.maxNum
     // 包含关键字不推送
-    let reg = /冒险助力礼包|纪行|预下载|脚本外挂|集中反馈|已开奖|云·原神|魔神任务|传说任务说明/g
+    let banWord = /冒险助力礼包|纪行|预下载|脚本外挂|集中反馈|已开奖|云·原神|魔神任务|传说任务说明/g
 
-    let news = await this.postData('getNewsList', { gids: 2, page_size: 10, type })
-    if (!news) return
+    let anno = await this.postData('getNewsList', { gids: 2, page_size: 10, type: 1 })
+    let info = await this.postData('getNewsList', { gids: 2, page_size: 10, type: 3 })
 
-    let key = 'Yz:genshin:mys:newPush:'
+    let news = []
+    if (anno) anno.data.list.forEach(v => { news.push({ ...v, typeName: '公告', post_id: v.post.post_id }) })
+    if (info) info.data.list.forEach(v => { news.push({ ...v, typeName: '资讯', post_id: v.post.post_id }) })
+    if (news.length <= 0) return
+
+    news = lodash.orderBy(news, ['post_id'], ['asc'])
 
     let now = Date.now() / 1000
-    let pushNews = []
-    news.data.list = news.data.list.reverse()
-    for (let item of news.data.list) {
-      if (new RegExp(reg).test(item.post.subject)) {
+
+    this.key = 'Yz:genshin:mys:newPush:'
+    this.e.isGroup = true
+    this.pushGroup = []
+    for (let val of news) {
+      if (now - val.post.created_at <= interval) {
         continue
       }
-
-      let pushed = await redis.get(key + item.post.post_id)
-      // this.e.force = true
-      if ((now - item.post.created_at <= interval && !pushed) || this.e.force) {
-        pushNews.push(item)
-        redis.set(key + item.post.post_id, '1', { EX: 3600 * 10 })
-        if (pushNews.length >= maxNum) {
-          break
+      if (new RegExp(banWord).test(val.post.subject)) {
+        continue
+      }
+      if (val.typeName == '公告') {
+        for (let groupId of cfg.announceGroup) {
+          await this.sendNews(groupId, val.typeName, val.post.post_id)
+        }
+      }
+      if (val.typeName == '资讯') {
+        for (let groupId of cfg.infoGroup) {
+          await this.sendNews(groupId, val.typeName, val.post.post_id)
         }
       }
     }
+  }
 
-    if (pushNews.length <= 0) return
+  async sendNews (groupId, typeName, postId) {
+    if (!this.pushGroup[groupId]) this.pushGroup[groupId] = 0
+    if (this.pushGroup[groupId] >= this.maxNum) return
 
-    let pushData = []
-    for (let val of pushNews) {
-      const param = await this.newsDetail(val.post.post_id)
+    let sended = await redis.get(`${this.key}${groupId}:${postId}`)
+    if (sended) return
+
+    if (!this[postId]) {
+      const param = await this.newsDetail(postId)
 
       logger.mark(`[米游社${typeName}推送] ${param.data.post.subject}`)
 
-      const img = await this.rander(param)
-
-      pushData.push({
-        title: param.data.post.subject,
-        img
-      })
-    }
-
-    this.e.isGroup = true
-    // 获取需要推送公告的用户
-    for (let groupId of cfg[mode]) {
-      logger.mark(`推送公告：${groupId}`)
-      this.e.group_id = groupId
-      for (let msg of pushData) {
-        this.e.group = Bot.pickGroup(Number(groupId))
-        let tmp = await this.replyMsg(msg.img, `原神${typeName}推送：${msg.title}`)
-        if (tmp?.type != 'xml') {
-          tmp = [`原神${typeName}推送\n`, tmp]
-        }
-        await this.e.group.sendMsg(tmp)
-        await common.sleep(1000)
+      this[postId] = {
+        img: await this.rander(param),
+        title: param.data.post.subject
       }
     }
+
+    this.pushGroup[groupId]++
+    this.e.group = Bot.pickGroup(Number(groupId))
+    this.e.group_id = Number(groupId)
+    let tmp = await this.replyMsg(this[postId].img, `原神${typeName}推送：${this[postId].title}`)
+
+    await common.sleep(1000)
+    if (!tmp) return
+
+    if (tmp?.type != 'xml') {
+      tmp = [`原神${typeName}推送\n`, tmp]
+    }
+
+    redis.set(`${this.key}${groupId}:${postId}`, '1', { EX: 3600 * 10 })
+    await this.e.group.sendMsg(tmp)
   }
 }

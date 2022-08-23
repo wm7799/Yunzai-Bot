@@ -5,6 +5,11 @@ import lodash from 'lodash'
 import gsCfg from '../model/gsCfg.js'
 import YAML from 'yaml'
 
+let set = './plugins/genshin/config/mys.pushNews.yaml'
+if (!fs.existsSync(set)) {
+  fs.copyFileSync('./plugins/genshin/defSet/mys/pushNews.yaml', set)
+}
+
 export class mysNews extends plugin {
   constructor (e) {
     super({
@@ -46,7 +51,7 @@ export class mysNews extends plugin {
 
     /** 定时任务 */
     this.task = {
-      cron: '0 3,18,33,48 * * * ?',
+      cron: gsCfg.getConfig('mys', 'pushNews').pushTime,
       name: '米游社公告推送任务',
       fnc: () => this.mysNewsTask(),
       log: false
@@ -67,8 +72,7 @@ export class mysNews extends plugin {
 
   async mysNewsTask () {
     let mysNews = new MysNews(this.e)
-    await mysNews.mysNewsTask(1)
-    await mysNews.mysNewsTask(3)
+    await mysNews.mysNewsTask()
   }
 
   async mysSearch () {
