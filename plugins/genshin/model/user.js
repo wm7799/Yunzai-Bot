@@ -339,7 +339,7 @@ export default class User extends base {
   async myCk () {
     let ck = gsCfg.getBingCkSingle(this.e.user_id)
     if (lodash.isEmpty(ck)) {
-      this.e.reply('请先绑定cookie')
+      this.e.reply('当前尚未绑定cookie')
     }
 
     ck = lodash.find(ck, (v) => { return v.isMain })

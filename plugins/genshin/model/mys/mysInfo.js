@@ -502,9 +502,11 @@ export default class MysInfo {
       case 10103:
         if (/(登录|login)/i.test(res.message)) {
           if (this.ckInfo.uid) {
+            logger.mark(`[ck失效][uid:${this.uid}][qq:${this.userId}]`)
             this.e.reply(`UID:${this.ckInfo.uid}，米游社cookie已失效，请重新绑定cookie`)
           } else {
-            this.e.reply(`ltuid:${this.ckInfo.ltuid}，米游社cookie已失效`)
+            logger.mark(`[公共ck失效][ltuid:${this.ckInfo.ltuid}]`)
+            this.e.reply(`查询失败，公共ck已失效，ltuid:${this.ckInfo.ltuid}`)
           }
           await this.delCk()
         } else {
@@ -535,7 +537,7 @@ export default class MysInfo {
     }
 
     if (res.retcode !== 0) {
-      logger.mark(`mys接口报错:${JSON.stringify(res)}，uid：${this.uid}`)
+      logger.mark(`[mys接口报错]${JSON.stringify(res)}，uid：${this.uid}`)
     }
 
     return res
@@ -551,8 +553,10 @@ export default class MysInfo {
         this.ckInfo = bingCkLtuid[ltuid]
         this.ckInfo.type = 'self'
       } else {
-        logger.mark(`删除失效ck[ltuid:${ltuid}]`)
+        logger.mark(`[删除失效ck][ltuid:${ltuid}]`)
       }
+
+      await this.redisDel(ltuid)
     }
 
     if (this.ckInfo.type == 'self' || this.ckInfo.type == 'bing') {
@@ -562,12 +566,12 @@ export default class MysInfo {
       if (tmp) {
         ltuid = tmp.ltuid
 
-        logger.mark(`删除失效绑定ck[qq:${this.userId}]`)
+        logger.mark(`[删除失效绑定ck][qq:${this.userId}]`)
         /** 删除文件保存ck */
         delete ck[this.ckInfo.uid]
         GsCfg.saveBingCk(this.userId, ck)
 
-        this.redisDel(ltuid)
+        await this.redisDel(ltuid)
 
         delete pubCk[ltuid]
         delete bingCkUid[tmp.uid]
@@ -576,8 +580,6 @@ export default class MysInfo {
     }
 
     delete pubCk[ltuid]
-
-    await this.redisDel(ltuid)
   }
 
   async redisDel (ltuid) {

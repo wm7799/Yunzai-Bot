@@ -6,7 +6,7 @@ cookieDoc: docs.qq.com/doc/DUWNVQVFTU3liTVlO
 
 # 是否开启米游社原神自动签到 1-开启 0-关闭
 isAutoSign: 1
-# 米游社原神签到定时任务，Cron表达式，默认00:02开始执行，每10s签到一个，修改需要重启
+# 米游社原神签到定时任务，Cron表达式，默认00:02开始执行，每6s签到一个，修改需要重启
 signTime: 0 2 0 * * ?
 # 米游社原神签到失败时重试次数，0则不重试
 signRetry: 10
