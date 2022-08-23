@@ -272,7 +272,7 @@ export default class MysSign extends base {
         if (ret.is_invalid) {
           invalidNum++
         } else {
-          sucNum++
+          failNum++
         }
       }
       if (this.signApi) {
