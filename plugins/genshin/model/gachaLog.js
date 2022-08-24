@@ -121,7 +121,7 @@ export default class GachaLog extends base {
   }
 
   async checkUrl (param) {
-    if (!['cn_gf01', 'cn_qd01'].includes(param.region)) {
+    if (param.region && !['cn_gf01', 'cn_qd01'].includes(param.region)) {
       this.e.reply('仅支持国服抽卡历史链接')
       return false
     }

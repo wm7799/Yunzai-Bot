@@ -54,6 +54,8 @@ export class gcLog extends plugin {
         }
       ]
     })
+
+    this.androidUrl = 'docs.qq.com/doc/DUWpYaXlvSklmVXlX'
   }
 
   async init () {
@@ -108,6 +110,9 @@ export class gcLog extends plugin {
 
     if (!this.e.file || !this.e.file.name.includes('txt')) {
       await this.e.reply('请发送日志文件')
+    } else {
+      await this.e.reply('3.0版本后，日志文件已不能获取抽取记录链接\n请用安卓方式获取', false, { at: true })
+      return true
     }
 
     let data = await new GachaLog(this.e).logFile()
@@ -189,7 +194,7 @@ export class gcLog extends plugin {
       await this.e.reply(segment.image(`file:///${_path}/resources/logHelp/记录帮助-电脑.png`))
       await this.e.reply('%userprofile%\\AppData\\LocalLow\\miHoYo\\原神')
     } else if (['安卓'].includes(msg)) {
-      await this.e.reply(segment.image(`file:///${_path}/resources/logHelp/记录帮助-安卓.png`))
+      await this.e.reply(`安卓抽卡记录获取教程：${this.androidUrl}`)
     } else if (['苹果', 'ios'].includes(msg)) {
       await this.e.reply(segment.image(`file:///${_path}/resources/logHelp/记录帮助-苹果.png`))
     }
