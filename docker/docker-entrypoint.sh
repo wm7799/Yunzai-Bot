@@ -14,6 +14,10 @@ WORK_DIR="/app/Yunzai-Bot"
 MIAO_PLUGIN_PATH="/app/Yunzai-Bot/plugins/miao-plugin"
 XIAOYAO_CVS_PATH="/app/Yunzai-Bot/plugins/xiaoyao-cvs-plugin"
 
+if [[ -f "~/.ovo" ]]; then
+    set +e
+fi
+
 echo -e "\n ================ \n ${Info} ${GreenBG} 拉取 Yunzai-Bot 更新 ${Font} \n ================ \n"
 if [[ -z $(git status -s) ]]; then
     echo -e " ${Warn} ${YellowBG} 当前工作区有修改，尝试暂存后更新。${Font}"
@@ -79,6 +83,10 @@ if [ -d $XIAOYAO_CVS_PATH"/.git" ]; then
     git log -1 --pretty=format:"%h - %an, %ar (%cd) : %s"
 fi
 
+if [[ ! -f "~/.ovo" ]]; then
+    touch ~/.ovo
+fi
+
 cd $WORK_DIR
 
 echo -e "\n ================ \n ${Info} ${GreenBG} 初始化 Docker 环境 ${Font} \n ================ \n"
@@ -86,6 +94,8 @@ echo -e "\n ================ \n ${Info} ${GreenBG} 初始化 Docker 环境 ${Fon
 if [ -f "./config/config/redis.yaml" ]; then
     sed -i 's/127.0.0.1/redis/g' ./config/config/redis.yaml
 fi
+
+set -e
 
 echo -e "\n ================ \n ${Info} ${GreenBG} 启动 Yunzai-Bot ${Font} \n ================ \n"
 
