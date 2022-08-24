@@ -95,7 +95,7 @@ if [ -f "./config/config/redis.yaml" ]; then
     sed -i 's/127.0.0.1/redis/g' ./config/config/redis.yaml
 fi
 
-set +e
+set -e
 
 echo -e "\n ================ \n ${Info} ${GreenBG} 启动 Yunzai-Bot ${Font} \n ================ \n"
 
