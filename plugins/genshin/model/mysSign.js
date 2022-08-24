@@ -92,6 +92,13 @@ export default class MysSign extends base {
       }
     }
 
+    if (!signInfo.first_bind) {
+      return {
+        retcode: 100,
+        msg: '签到失败：首次请先手动签到'
+      }
+    }
+
     this.signInfo = signInfo.data
 
     if (this.signInfo.is_sign && !this.force) {

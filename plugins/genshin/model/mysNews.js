@@ -370,7 +370,7 @@ export default class MysNews extends base {
     this.e.isGroup = true
     this.pushGroup = []
     for (let val of news) {
-      if (now - val.post.created_at <= interval) {
+      if (Number(now - val.post.created_at) > interval) {
         continue
       }
       if (new RegExp(banWord).test(val.post.subject)) {
