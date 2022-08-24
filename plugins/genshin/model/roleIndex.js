@@ -407,10 +407,10 @@ export default class RoleIndex extends base {
         { lable: '普通宝箱', num: stats.common_chest_number }
       ],
       [
-        { lable: '风神瞳', num: stats.anemoculus_number },
-        { lable: '岩神瞳', num: stats.geoculus_number },
+        { lable: '草神瞳', num: stats.dendroculus_number },
         { lable: '雷神瞳', num: stats.electroculus_number },
-        { lable: '传送点', num: stats.way_point_number }
+        { lable: '岩神瞳', num: stats.geoculus_number },
+        { lable: '风神瞳', num: stats.anemoculus_number }
       ]
     ]
     // 尘歌壶
@@ -460,9 +460,12 @@ export default class RoleIndex extends base {
         }
       }
 
-      if (['雪山', '稻妻', '层岩巨渊'].includes(val.name)) {
+      if (['雪山', '稻妻', '层岩巨渊', '须弥'].includes(val.name)) {
         if (val.offerings[0].name.includes('流明石')) {
           val.offerings[0].name = '流明石'
+        }
+        if (val.offerings[0].name == '恒那兰那的梦之树') {
+          val.offerings[0].name = '梦之树'
         }
 
         tmp.line.push({

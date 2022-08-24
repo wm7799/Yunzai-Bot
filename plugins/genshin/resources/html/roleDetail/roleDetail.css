@@ -924,3 +924,29 @@ body {
   background-size: 100%;
   background-position: 100px 0px;
 }
+.提纳里_bg1 {
+  background: url(../../../../../data/roleDetail/提纳里1.png) no-repeat;
+  background-size: auto 300px;
+  background-position: 100% 0%;
+}
+.提纳里_drag {
+  background-position: -110px -55px;
+}
+.提纳里_bg2 {
+  background-image: url(../../../../../data/roleDetail/提纳里2.png);
+  background-size: 100%;
+  background-position: 70px 0px;
+}
+.柯莱_bg1 {
+  background: url(../../../../../data/roleDetail/柯莱1.png) no-repeat;
+  background-size: auto 300px;
+  background-position: 100% 0%;
+}
+.柯莱_drag {
+  background-position: -110px -55px;
+}
+.柯莱_bg2 {
+  background-image: url(../../../../../data/roleDetail/柯莱2.png);
+  background-size: 100%;
+  background-position: 60px 0px;
+}
