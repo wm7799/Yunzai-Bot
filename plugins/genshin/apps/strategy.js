@@ -91,8 +91,14 @@ export class strategy extends plugin {
 
     /** 主角特殊处理 */
     if (['10000005', '10000007', '20000000'].includes(String(role.roleId))) {
-      if (!['风主', '岩主', '雷主', '草主'].includes(role.alias)) {
-        await this.e.reply(`请选择：风主攻略${group}、岩主攻略${group}、雷主攻略${group}`)
+      travelers = ['风主', '岩主', '雷主', '草主']
+      if (!travelers.includes(role.alias)) {
+        let msg = '请选择：'
+        for (let sub of travelers) {
+          msg += `${sub}攻略${group}、`
+        }
+        msg = msg.substring(0, msg.lastIndexOf('、'))
+        await this.e.reply(msg)
         return
       } else {
         role.name = role.alias
@@ -170,7 +176,7 @@ export class strategy extends plugin {
     }
 
     if (!url) {
-      this.e.reply(`暂无${name}攻略`)
+      this.e.reply(`该攻略来源暂无${name}攻略，请尝试使用其他的攻略来源查询`)
       return false
     }
 
