@@ -11,7 +11,7 @@ export class todayMaterial extends plugin {
       priority: 500,
       rule: [
         {
-          reg: '#(今日|今天|每日|我的)*(素材|材料|天赋)$',
+          reg: '#(今日|今天|每日|我的)*(素材|材料|天赋)[ |0-9]*$',
           fnc: 'today'
         }
       ]
