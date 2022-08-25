@@ -111,7 +111,7 @@ export class gcLog extends plugin {
     if (!this.e.file || !this.e.file.name.includes('txt')) {
       await this.e.reply('请发送日志文件')
     } else {
-      await this.e.reply('3.0版本后，日志文件已不能获取抽取记录链接\n请用安卓方式获取', false, { at: true })
+      await this.e.reply('3.0版本后，日志文件已不能获取抽取记录链接\n请用安卓方式获取')
       return true
     }
 
@@ -191,8 +191,7 @@ export class gcLog extends plugin {
     let msg = this.e.msg.replace(/#|帮助/g, '')
 
     if (['电脑', 'pc'].includes(msg)) {
-      await this.e.reply(segment.image(`file:///${_path}/resources/logHelp/记录帮助-电脑.png`))
-      await this.e.reply('%userprofile%\\AppData\\LocalLow\\miHoYo\\原神')
+      await this.e.reply('3.0版本后，日志文件已不能获取抽取记录链接\n请用安卓方式获取，#安卓帮助查看教程')
     } else if (['安卓'].includes(msg)) {
       await this.e.reply(`安卓抽卡记录获取教程：${this.androidUrl}`)
     } else if (['苹果', 'ios'].includes(msg)) {

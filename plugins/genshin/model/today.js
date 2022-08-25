@@ -41,6 +41,8 @@ export default class Today extends base {
     let mainList = []
     let count = 0
 
+    /* eslint-disable no-labels */
+    a:
     for (let i in nowElement) {
       lodash.forEach(nowElement[i], (ele, name) => {
         let temp = {
@@ -53,11 +55,11 @@ export default class Today extends base {
 
         // 获取角色数组
         let element = ele[1]
-
+        b:
         for (let val of avatars) {
         // 进行天赋的数据处理
           if ((temp.isTalent) && (element.indexOf(val.name) != -1)) {
-            if (val.level >= 90) continue
+            if (val.level >= 90) continue b
 
             let rarity = val.rarity
             if (val.rarity > 5) {
@@ -87,7 +89,7 @@ export default class Today extends base {
 
             temp.list.push(val)
           } else if ((!temp.isTalent) && (element.indexOf(val.weapon.name) != -1)) {
-            if (val.weapon.level >= 90) continue
+            if (val.weapon.level >= 90) continue b
             // 进行武器的数据处理
             let firstSort = 0
             firstSort += val.weapon.level
