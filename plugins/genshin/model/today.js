@@ -24,7 +24,7 @@ export default class Today extends base {
     return await this.todayData(avatars)
   }
 
-  todayData (avatars) {
+  async todayData (avatars) {
     let daily = gsCfg.getdefSet('daily', 'daily')
     let other = gsCfg.getdefSet('weapon', 'other')
     // 除周日日期余三
@@ -40,7 +40,7 @@ export default class Today extends base {
 
     let mainList = []
     let count = 0
-
+    let role = []
     /* eslint-disable no-labels */
     a:
     for (let i in nowElement) {
@@ -55,12 +55,12 @@ export default class Today extends base {
 
         // 获取角色数组
         let element = ele[1]
+
         b:
         for (let val of avatars) {
         // 进行天赋的数据处理
           if ((temp.isTalent) && (element.indexOf(val.name) != -1)) {
-            if (val.level >= 90) continue b
-
+            role.push(val)
             let rarity = val.rarity
             if (val.rarity > 5) {
               rarity = 5
