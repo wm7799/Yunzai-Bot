@@ -75,7 +75,7 @@ export default class MysSign extends base {
 
     if (!signInfo) return false
 
-    if (signInfo.retcode == -100) {
+    if (signInfo.retcode == -100 && signInfo.message == '尚未登录') {
       logger.error(`[原神签到失败][uid:${this.mysApi.uid}][qq:${lodash.padEnd(this.e.user_id, 10, ' ')}] 绑定cookie已失效`)
       await new User(this.e).del(ck.uid)
       return {
@@ -189,7 +189,7 @@ export default class MysSign extends base {
       sign.message = '验证码失败'
 
       if (this.cfg.signRetry > 0) {
-        sign = await this.retry(this.cfg.signRetry)
+        // sign = await this.retry(this.cfg.signRetry)
       }
     }
 

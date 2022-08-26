@@ -235,6 +235,7 @@ export default class MysApi {
 
   /* eslint-disable quotes */
   get device () {
-    return `Mi 10`
+    if (!this._device) this._device = `Yz-${md5(this.uid).substring(0, 5)}`
+    return this._device
   }
 }
