@@ -59,6 +59,8 @@ export class strategy extends plugin {
       [341523]
     ]
 
+    this.source = ['西风驿站', '原神观测枢', '派蒙喵喵屋', 'OH是姜姜呀']
+
     this.oss = '?x-oss-process=image//resize,s_1200/quality,q_90/auto-orient,0/interlace,1/format,jpg'
   }
 
@@ -91,7 +93,7 @@ export class strategy extends plugin {
 
     /** 主角特殊处理 */
     if (['10000005', '10000007', '20000000'].includes(String(role.roleId))) {
-      travelers = ['风主', '岩主', '雷主', '草主']
+      let travelers = ['风主', '岩主', '雷主', '草主']
       if (!travelers.includes(role.alias)) {
         let msg = '请选择：'
         for (let sub of travelers) {
@@ -176,7 +178,7 @@ export class strategy extends plugin {
     }
 
     if (!url) {
-      this.e.reply(`该攻略来源暂无${name}攻略，请尝试使用其他的攻略来源查询`)
+      this.e.reply(`暂无${name}攻略（${this.source[group - 1]}）\n请尝试其他的攻略来源查询\n#攻略帮助，查看说明`)
       return false
     }
 
