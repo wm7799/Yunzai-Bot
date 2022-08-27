@@ -4,6 +4,8 @@ import fs from 'node:fs'
 import lodash from 'lodash'
 import fetch from 'node-fetch'
 import YAML from 'yaml'
+import MysInfo from '../genshin/model/mys/mysInfo.js'
+import common from '../../lib/common/common.js'
 
 export class setPubCk extends plugin {
   constructor (e) {
@@ -16,6 +18,11 @@ export class setPubCk extends plugin {
         {
           reg: '^#配置(ck|cookie)$|^#*配置公共查询ck$',
           fnc: 'setPubCk',
+          permission: 'master'
+        },
+        {
+          reg: '^#使用(全部|用户)ck$',
+          fnc: 'setUserCk',
           permission: 'master'
         }
       ]
@@ -96,5 +103,19 @@ export class setPubCk extends plugin {
   save (data) {
     data = YAML.stringify(data)
     fs.writeFileSync(this.file, data)
+  }
+
+  async setUserCk () {
+    let set = './plugins/genshin/config/mys.set.yaml'
+
+    let config = fs.readFileSync(set, 'utf8')
+    config = config.replace(/allowUseCookie: [0-1]/g, 'allowUseCookie: 1')
+    fs.writeFileSync(set, config, 'utf8')
+
+    await common.sleep(500)
+    let mysInfo = new MysInfo(this.e)
+    await mysInfo.initPubCk(true)
+
+    await this.reply('开启成功，用户ck已加入公共查询ck池')
   }
 }

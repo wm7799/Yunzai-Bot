@@ -426,6 +426,7 @@ export default class MysInfo {
     let set = GsCfg.getConfig('mys', 'set')
     let userNum = 0
     if (set.allowUseCookie == 1) {
+      await this.initBingCk()
       lodash.forEach(bingCkUid, async v => {
         if (pubCk[v.ltuid]) return
         pubCk[v.ltuid] = v.ck
