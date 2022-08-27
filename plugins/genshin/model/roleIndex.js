@@ -270,9 +270,9 @@ export default class RoleIndex extends base {
   }
 
   dayCount (num) {
-    let year = Math.floor(num / 356)
-    let month = Math.floor((num % 356) / 30)
-    let day = (num % 356) % 30
+    let year = Math.floor(num / 365)
+    let month = Math.floor((num % 365) / 30)
+    let day = (num % 365) % 30
     let msg = ''
     if (year > 0) {
       msg += year + '年'
