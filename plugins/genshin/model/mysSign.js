@@ -176,6 +176,7 @@ export default class MysSign extends base {
 
   async bbsSign () {
     this.signApi = true
+    this.is_verify = false
     let sign = await this.mysApi.getData('bbs_sign')
     this.signMsg = sign?.message ?? 'Too Many Requests'
 
@@ -184,13 +185,10 @@ export default class MysSign extends base {
       return false
     }
 
-    if (sign.data && sign.data.success !== 0) {
+    if (sign.data && sign.data.risk_code === 375) {
       this.signMsg = '验证码失败'
       sign.message = '验证码失败'
-
-      if (this.cfg.signRetry > 0) {
-        // sign = await this.retry(this.cfg.signRetry)
-      }
+      this.is_verify = true
     }
 
     /** 签到成功 */
@@ -237,7 +235,7 @@ export default class MysSign extends base {
     let finishTime = moment().add(time, 's').format('MM-DD HH:mm:ss')
 
     tips.push(`\n签到ck：${uids.length}个`)
-    tips.push(`\n未签ck：${noSignNum}个`)
+    if (uids.length != noSignNum) tips.push(`\n未签ck：${noSignNum}个`)
     tips.push(`\n预计需要：${this.countTime(time)}`)
 
     if (time > 120) {
@@ -258,7 +256,8 @@ export default class MysSign extends base {
     let finshNum = 0
     let failNum = 0
     let invalidNum = 0
-    this.retryTime = 0
+    let verifyNum = 0
+
     for (let i in uids) {
       this.ckNum = Number(i) + 1
       let uid = uids[i]
@@ -276,11 +275,15 @@ export default class MysSign extends base {
           sucNum++
         }
       } else {
+        if (this.is_verify) verifyNum++
         if (ret.is_invalid) {
           invalidNum++
         } else {
           failNum++
         }
+      }
+      if (verifyNum > 3) {
+        break
       }
       if (this.signApi) {
         await common.sleep(6.1 * 1000)
@@ -292,9 +295,10 @@ export default class MysSign extends base {
     if (invalidNum > 0) {
       msg += `\n失效：${invalidNum}个`
     }
-    if (this.retryTime > 0) {
-      msg += `\n重试：${this.retryTime}次`
+    if (verifyNum > 3) {
+      msg += '\n\n验证码失败次数过多，已停止任务'
     }
+
     if (manual) {
       this.e.reply(msg)
     } else {
@@ -328,26 +332,6 @@ export default class MysSign extends base {
     if (min > 0) msg += `${min}分钟`
     if (sec > 0) msg += `${sec}秒`
     return msg
-  }
-
-  async retry (num = 3) {
-    let sign
-    for (let i = 1; i <= num; i++) {
-      await common.sleep(6000)
-      this.retryTime++
-      logger.mark(`[原神签到失败][uid:${this.mysApi.uid}][qq:${lodash.padEnd(this.e.user_id, 10, ' ')}] 重试${i}次`)
-      sign = await this.mysApi.getData('bbs_sign')
-      if (sign && sign.retcode === -5003) break
-      if (sign && sign.retcode === 0 && sign?.data?.risk_code === 0) {
-        break
-      }
-      if (sign?.data?.risk_code == 375) {
-        sign.retcode = 375
-        sign.message = '签到失败risk_code:375'
-      }
-    }
-
-    return sign
   }
 
   async signClose () {
