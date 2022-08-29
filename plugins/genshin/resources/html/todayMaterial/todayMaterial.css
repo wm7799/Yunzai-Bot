@@ -22,7 +22,7 @@ body {
   background-color: #f5f1eb;
   position: relative;
 }
-.main_box{
+.main_box {
   margin-bottom: 40px;
 }
 .base_info {
@@ -54,7 +54,7 @@ body {
 }
 .ele_info {
   display: flex;
-  margin: 20px 0px 14px 0px;
+  margin: 30px 0px 14px 0px;
   padding: 0 10px 10px 0px;
   position: relative;
   display: flex;
@@ -73,10 +73,10 @@ body {
 .ele_info .area {
   position: relative;
 }
-.tab-item-icon{
+.tab-item-icon {
   width: 36px;
   height: 36px;
-  position:absolute;
+  position: absolute;
   background: #c3b6aa;
   z-index: 2;
   border-radius: 50%;
@@ -125,32 +125,32 @@ body {
   padding-left: 70px;
   padding-right: 40px;
 }
-.ele_box{
+.ele_box {
   display: flex;
 }
-.ele_box .ele_name{
+.ele_box .ele_name {
   font-size: 26px;
   color: #504c49;
   font-weight: 600;
   line-height: 50px;
   margin-right: 10px;
 }
-.ele_box .ele_img{
+.ele_box .ele_img {
   display: flex;
 }
-.ele_box .ele_img .img_item{
+.ele_box .ele_img .img_item {
   width: 50px;
   height: 50px;
   background-image: url(./item_bg.png);
   background-size: 100%;
   background-repeat: no-repeat;
   margin-right: 3px;
-} 
-.ele_box .ele_img .img_item img{
+}
+.ele_box .ele_img .img_item img {
   padding: 4px;
   width: 100%;
   height: 100%;
-} 
+}
 .item_box {
   display: flex;
   flex-wrap: wrap;
@@ -178,6 +178,28 @@ body {
   position: absolute;
   top: 0;
   /*filter: contrast(95%);*/
+}
+.talent {
+  height: 23px;
+  padding: 3px 3px;
+  display: flex;
+  justify-content: center;
+  font-size: 16px;
+  color: #222;
+  font-family: tttgbnumber;
+}
+.talent-item {
+  width: 20px;
+  height: 16px;
+  line-height: 17px;
+  margin: 0 3px;
+  text-align: center;
+  display: block;
+  background-size: contain;
+  opacity: 0.8;
+  position: relative;
+  border-radius: 3px;
+  box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.5);
 }
 .bg105 {
   background-image: url(../../img/other/bg105.png);
@@ -265,7 +287,7 @@ body {
   font-size: 16px;
   font-family: tttgbnumber;
 }
-.role_name {
+.role_box .role_name {
   /* overflow: hidden; */
   white-space: nowrap;
   margin-top: 5px;
@@ -336,14 +358,13 @@ body {
   display: inline-block;
   transform: scale(0.8);
 }
-.explain{
+.explain {
   color: #757c83;
   font-size: 16px;
   position: absolute;
   left: 30px;
   bottom: 10px;
 }
-
 
 .weapon_box {
   display: flex;

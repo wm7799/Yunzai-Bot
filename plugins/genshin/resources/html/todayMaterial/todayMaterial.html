@@ -55,8 +55,15 @@
                 <div class="bg{{val.rarity}}"></div>
                 <img class="role_img" src="{{pluResPath}}img/role/{{val.name}}.png" onerror="whenError(this)" />
                 <div class="desc">Lv.{{val.level}}</div>
-                <div class="role_name">{{val.name}}</div>
+                <!-- <div class="role_name">{{val.name}}</div> -->
               </div>
+              {{ if skill[val.id]}}
+              <div class="talent">
+                  <span class="talent-item">{{skill[val.id].a.level_current}}</span>
+                  <span class="talent-item">{{skill[val.id].e.level_current}}</span>
+                  <span class="talent-item">{{skill[val.id].q.level_current}}</span>
+                </div>
+              {{/if}}
             </div>
             {{/each}}
           </div>

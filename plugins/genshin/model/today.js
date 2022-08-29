@@ -2,7 +2,9 @@ import moment from 'moment'
 import lodash from 'lodash'
 import base from './base.js'
 import MysInfo from './mys/mysInfo.js'
+import MysApi from './mys/mysApi.js'
 import gsCfg from './gsCfg.js'
+import common from '../../../lib/common/common.js'
 
 export default class Today extends base {
   constructor (e) {
@@ -142,6 +144,16 @@ export default class Today extends base {
       })
     }
 
+    /** 判断是否绑定了ck */
+    this.ck = await MysInfo.checkUidBing(this.e.uid)
+
+    let skill = {}
+    if (this.ck) {
+      this.mysApi = new MysApi(this.e.uid, this.ck.ck, { log: false })
+      this.mysApi.cacheCd = 1800
+      skill = await this.getAllSkill(role)
+    }
+
     let day = moment().format('MM-DD hh:mm')
     let weekData = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
     day += ' ' + weekData[moment().day()]
@@ -155,7 +167,82 @@ export default class Today extends base {
       day,
       num,
       mainList,
+      skill,
       ...this.screenData
     }
+  }
+
+  async getAllSkill (avatars) {
+    let skillRet = []; let skill = []
+    // 批量获取技能数据，分组10个id一次，延迟100ms
+    let num = 10; let ms = 100
+    let avatarArr = lodash.chunk(avatars, num)
+
+    let start = Date.now()
+
+    for (let val of avatarArr) {
+      for (let avatar of val) {
+        skillRet.push(this.getSkill(avatar))
+      }
+      skillRet = await Promise.all(skillRet)
+
+      // 过滤没有获取成功的
+      skillRet.filter(item => item.a)
+      skillRet = skillRet.filter(item => item.a)
+
+      await common.sleep(ms)
+    }
+    skill = lodash.keyBy(skillRet, 'id')
+    logger.mark(`[米游社接口][detail][${this.ck.uid}] ${Date.now() - start}ms`)
+    return skill
+  }
+
+  async getSkill (avatar) {
+    let force = !this.e.msg.includes('force')
+    let res = await this.mysApi.getData('detail', { avatar_id: avatar.id }, force)
+    if (!res || res.retcode !== 0 || !res.data.skill_list) return false
+
+    let skill = {
+      id: avatar.id
+    }
+
+    let type = 'id'
+    if ([10000021].includes(Number(avatar.id))) {
+      type = 'group_id'
+    }
+
+    let skillList = lodash.orderBy(res.data.skill_list, [type], ['asc'])
+
+    for (let val of skillList) {
+      val.level_original = val.level_current
+      if (val.name.includes('普通攻击')) {
+        skill.a = val
+        continue
+      }
+      if (val.max_level >= 10 && !skill.e) {
+        skill.e = val
+        continue
+      }
+      if (val.max_level >= 10 && !skill.q) {
+        skill.q = val
+        continue
+      }
+    }
+    if (avatar.actived_constellation_num >= 3) {
+      if (avatar.constellations[2].effect.includes(skill.e.name)) {
+        skill.e.level_current += 3
+      } else if (avatar.constellations[2].effect.includes(skill.q.name)) {
+        skill.q.level_current += 3
+      }
+    }
+    if (avatar.actived_constellation_num >= 5) {
+      if (avatar.constellations[4].effect.includes(skill.e.name)) {
+        skill.e.level_current += 3
+      } else if (avatar.constellations[4].effect.includes(skill.q.name)) {
+        skill.q.level_current += 3
+      }
+    }
+
+    return skill
   }
 }
