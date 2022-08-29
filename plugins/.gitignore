@@ -3,6 +3,7 @@
 
 !genshin
 !genshin/**
+genshin/config/*
 
 !system
 !system/**
