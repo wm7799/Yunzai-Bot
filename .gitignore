@@ -134,6 +134,7 @@ dist
 dump.rdb
 data/
 config/test/*
+plugins/genshin/config/*
 !config/test/default.yaml
 logs/
 
