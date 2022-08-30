@@ -3,12 +3,8 @@ import Note from '../model/note.js'
 import MysSign from '../model/mysSign.js'
 import gsCfg from '../model/gsCfg.js'
 import puppeteer from '../../../lib/puppeteer/puppeteer.js'
-import fs from 'node:fs'
 
-let set = './plugins/genshin/config/mys.set.yaml'
-if (!fs.existsSync(set)) {
-  fs.copyFileSync('./plugins/genshin/defSet/mys/set.yaml', set)
-}
+gsCfg.cpCfg('mys', 'set')
 
 export class dailyNote extends plugin {
   constructor () {

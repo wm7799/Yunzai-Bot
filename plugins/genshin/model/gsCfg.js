@@ -263,6 +263,17 @@ class GsCfg {
       name: this.roleIdToName(roleId)
     }
   }
+
+  cpCfg (app, name) {
+    if (!fs.existsSync('./plugins/genshin/config')) {
+      fs.mkdirSync('./plugins/genshin/config')
+    }
+
+    let set = `./plugins/genshin/config/${app}.${name}.yaml`
+    if (!fs.existsSync(set)) {
+      fs.copyFileSync(`./plugins/genshin/defSet/${app}/${name}.yaml`, set)
+    }
+  }
 }
 
 export default new GsCfg()

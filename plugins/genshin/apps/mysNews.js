@@ -5,11 +5,7 @@ import lodash from 'lodash'
 import gsCfg from '../model/gsCfg.js'
 import YAML from 'yaml'
 
-let set = './plugins/genshin/config/mys.pushNews.yaml'
-if (!fs.existsSync(set)) {
-  fs.copyFileSync('./plugins/genshin/defSet/mys/pushNews.yaml', set)
-}
-
+gsCfg.cpCfg('mys', 'pushNews')
 export class mysNews extends plugin {
   constructor (e) {
     super({

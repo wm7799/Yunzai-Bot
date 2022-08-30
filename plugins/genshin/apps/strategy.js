@@ -7,10 +7,7 @@ import lodash from 'lodash'
 import fs from 'node:fs'
 import fetch from 'node-fetch'
 
-let set = './plugins/genshin/config/mys.set.yaml'
-if (!fs.existsSync(set)) {
-  fs.copyFileSync('./plugins/genshin/defSet/mys/set.yaml', set)
-}
+gsCfg.cpCfg('mys', 'set')
 
 /**
  * Modify By: ifeng0188
@@ -127,7 +124,7 @@ export class strategy extends plugin {
   /** #设置默认攻略1 */
   async strategy_setting () {
     let match = /^#?设置默认攻略([1-4])?$/.exec(this.e.msg)
-
+    let set = './plugins/genshin/config/mys.set.yaml'
     let config = fs.readFileSync(set, 'utf8')
     config = config.replace(/defaultSource: [1-4]/g, 'defaultSource: ' + Number(match[1]))
     fs.writeFileSync(set, config, 'utf8')
