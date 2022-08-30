@@ -72,6 +72,7 @@ export class mysNews extends plugin {
   }
 
   async mysSearch () {
+    if (/签到/g.test(this.e.msg)) return false
     let data = await new MysNews(this.e).mysSearch()
     if (!data) return
     await this.reply(data)
