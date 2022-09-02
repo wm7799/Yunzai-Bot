@@ -44,6 +44,9 @@ export default class User extends base {
 
     /** 拼接ck */
     this.ck = `ltoken=${param.ltoken};ltuid=${param.ltuid};cookie_token=${param.cookie_token}; account_id=${param.account_id};`
+    if(typeof(param.mi18nLang)==='string'){
+      this.ck += ` mi18nLang=${param.mi18nLang}`//国际服的标记
+    }
     this.ltuid = param.ltuid
 
     /** 米游币签到字段 */
@@ -89,6 +92,11 @@ export default class User extends base {
   /** 检查ck是否可用 */
   async checkCk () {
     let url = 'https://api-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_cn'
+    let appName= '米游社'
+    if(this.ck.indexOf('mi18nLang')!=-1){
+      url = 'https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global'
+      appName = 'Hoyolab'
+    }
     let res = await fetch(url, { method: 'get', headers: { Cookie: this.ck } })
     if (!res.ok) return false
     res = await res.json()
@@ -99,7 +107,7 @@ export default class User extends base {
     }
 
     if (!res.data.list || res.data.list.length <= 0) {
-      this.checkMsg = '米游社账号未绑定原神角色！'
+      this.checkMsg = appName + '账号未绑定原神角色！'
       return false
     }
 
