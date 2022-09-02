@@ -257,7 +257,7 @@ export default class GachaLog extends base {
 
     let list = []
     for (let val of res.data.list) {
-      if (ids.includes(val.id)) {
+      if (ids.get(String(val.id))) {
         logger.mark(`${this.e.logFnc}[uid:${this.uid}] 获取${this.typeName}记录完成，暂无新记录`)
         return { hasErr: false, list }
       } else {
@@ -282,14 +282,14 @@ export default class GachaLog extends base {
 
   // 读取本地json
   readJson () {
-    let logJson = []; let ids = []
+    let logJson = []; let ids = new Map()
     let file = `${this.path}/${this.uid}/${this.type}.json`
     if (fs.existsSync(file)) {
     // 获取本地数据 进行数据合并
       logJson = JSON.parse(fs.readFileSync(file, 'utf8'))
       for (let val of logJson) {
         if (val.id) {
-          ids.push(val.id)
+          ids.set(String(val.id), val.id)
         }
       }
     }
