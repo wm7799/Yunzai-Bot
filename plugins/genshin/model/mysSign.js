@@ -56,8 +56,10 @@ export default class MysSign extends base {
   }
 
   async doSign (ck, isLog = true) {
+    ck = this.setCk(ck)
     this.mysApi = new MysApi(ck.uid, ck.ck, { log: isLog, device_id: ck.device_id })
     this.key = `${this.prefix}isSign:${this.mysApi.uid}`
+    this.log = `[uid:${ck.uid}][qq:${lodash.padEnd(this.e.user_id, 10, ' ')}]`
 
     let isSigned = await redis.get(this.key)
     if (isSigned && this.isTask && !this.force) {
@@ -76,7 +78,7 @@ export default class MysSign extends base {
     if (!signInfo) return false
 
     if (signInfo.retcode == -100 && signInfo.message == '尚未登录') {
-      logger.error(`[原神签到失败][uid:${this.mysApi.uid}][qq:${lodash.padEnd(this.e.user_id, 10, ' ')}] 绑定cookie已失效`)
+      logger.error(`[原神签到失败]${this.log} 绑定cookie已失效`)
       await new User(this.e).del(ck.uid)
       return {
         retcode: -100,
@@ -143,6 +145,11 @@ export default class MysSign extends base {
     }
   }
 
+  setCk (ck) {
+    ck.ck = lodash.trim(ck.ck, ';') + `; _MHYUUID=${ck.device_id}; `
+    return ck
+  }
+
   // 缓存签到奖励
   async getReward (signDay) {
     let key = `${this.prefix}reward`
@@ -181,29 +188,32 @@ export default class MysSign extends base {
     this.signMsg = sign?.message ?? 'Too Many Requests'
 
     if (!sign) {
-      logger.mark(`[原神签到失败][uid:${this.mysApi.uid}][qq:${lodash.padEnd(this.e.user_id, 10, ' ')}]：${sign.message || this.signMsg}`)
+      logger.mark(`[原神签到失败]${this.log}：${sign.message || this.signMsg}`)
       return false
+    }
+
+    /** 签到成功 */
+    if (sign.retcode === -5003) {
+      this.signed = true
+      logger.mark(`[原神已经签到]${this.log} 第${this.ckNum}个`)
+      return true
     }
 
     if (sign.data && sign.data.risk_code === 375) {
       this.signMsg = '验证码失败'
       sign.message = '验证码失败'
       this.is_verify = true
-    }
 
-    /** 签到成功 */
-    if (sign.retcode === -5003) {
-      this.signed = true
-      logger.mark(`[原神已经签到][uid:${this.mysApi.uid}][qq:${lodash.padEnd(this.e.user_id, 10, ' ')}] 第${this.ckNum}个`)
-      return true
+      logger.mark(`[原神签到失败]${this.log}：${sign.message} 第${this.ckNum}个`)
+      return false
     }
 
     if (sign.retcode === 0 && sign?.data.success === 0) {
-      logger.mark(`[原神签到成功][uid:${this.mysApi.uid}][qq:${lodash.padEnd(this.e.user_id, 10, ' ')}] 第${this.ckNum}个`)
+      logger.mark(`[原神签到成功]${this.log} 第${this.ckNum}个`)
       return true
     }
 
-    logger.mark(`[原神签到失败][uid:${this.mysApi.uid}][qq:${lodash.padEnd(this.e.user_id, 10, ' ')}]：${sign.message} 第${this.ckNum}个`)
+    logger.mark(`[原神签到失败]${this.log}：${sign.message} 第${this.ckNum}个`)
     return false
   }
 
