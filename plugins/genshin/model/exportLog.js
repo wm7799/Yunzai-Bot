@@ -261,7 +261,7 @@ export default class ExportLog extends base {
     /** 必要字段 */
     let reqField = ['uigf_gacha_type', 'gacha_type', 'item_type', 'name', 'time']
     /** 不是必要字段 */
-    let noReqField = ['uid', 'count', 'item_id', 'lang', 'rank_type']
+    let noReqField = ['id', 'uid', 'count', 'item_id', 'lang', 'rank_type']
 
     let field = {}
     for (let i in list[0]) {
