@@ -57,7 +57,7 @@
                 <div class="desc">Lv.{{val.level}}</div>
                 <!-- <div class="role_name">{{val.name}}</div> -->
               </div>
-              {{ if skill[val.id]}}
+              {{ if skill[val.id] && skill[val.id].a }}
               <div class="talent">
                   <span class="talent-item">{{skill[val.id].a.level_current}}</span>
                   <span class="talent-item">{{skill[val.id].e.level_current}}</span>
