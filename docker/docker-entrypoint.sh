@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
-set -e
+
+set +e
 
 GreenBG="\\033[42;37m"
 YellowBG="\\033[43;37m"
@@ -14,11 +15,12 @@ WORK_DIR="/app/Yunzai-Bot"
 MIAO_PLUGIN_PATH="/app/Yunzai-Bot/plugins/miao-plugin"
 XIAOYAO_CVS_PATH="/app/Yunzai-Bot/plugins/xiaoyao-cvs-plugin"
 
-if [[ -f "~/.ovo" ]]; then
-    set +e
+if [[ ! -d "$HOME/.ovo" ]]; then
+    mkdir ~/.ovo
 fi
 
 echo -e "\n ================ \n ${Info} ${GreenBG} 拉取 Yunzai-Bot 更新 ${Font} \n ================ \n"
+
 if [[ -z $(git status -s) ]]; then
     echo -e " ${Warn} ${YellowBG} 当前工作区有修改，尝试暂存后更新。${Font}"
     git add .
@@ -29,19 +31,25 @@ else
     git pull origin main --allow-unrelated-histories
 fi
 
-echo -e "\n ================ \n ${Info} ${GreenBG} 更新 Yunzai-Bot 运行依赖 ${Font} \n ================ \n"
-
-pnpm install -P
+if [[ ! -f "$HOME/.ovo/yunzai.ok" ]]; then
+    set -e
+    echo -e "\n ================ \n ${Info} ${GreenBG} 更新 Yunzai-Bot 运行依赖 ${Font} \n ================ \n"
+    pnpm install -P
+    touch ~/.ovo/yunzai.ok
+    set +e
+fi
 
 echo -e "\n ================ \n ${Version} ${BlueBG} Yunzai-Bot 版本信息 ${Font} \n ================ \n"
 
 git log -1 --pretty=format:"%h - %an, %ar (%cd) : %s"
 
 if [ -d $MIAO_PLUGIN_PATH"/.git" ]; then
+
     echo -e "\n ================ \n ${Info} ${GreenBG} 拉取 喵喵插件 更新 ${Font} \n ================ \n"
+
     cd $MIAO_PLUGIN_PATH
-    
-    if [[ ! -z $(git status -s) ]]; then
+
+    if [[ -n $(git status -s) ]]; then
         echo -e " ${Warn} ${YellowBG} 当前工作区有修改，尝试暂存后更新。${Font}"
         git add .
         git stash
@@ -50,21 +58,27 @@ if [ -d $MIAO_PLUGIN_PATH"/.git" ]; then
     else
         git pull origin master --allow-unrelated-histories
     fi
-    
-    echo -e "\n ================ \n ${Info} ${GreenBG} 更新 喵喵插件 运行依赖 ${Font} \n ================ \n"
-    
-    pnpm add image-size -w
-    
+
+    if [[ ! -f "$HOME/.ovo/miao.ok" ]]; then
+        set -e
+        echo -e "\n ================ \n ${Info} ${GreenBG} 更新 喵喵插件 运行依赖 ${Font} \n ================ \n"
+        pnpm add image-size -w
+        touch ~/.ovo/miao.ok
+        set +e
+    fi
+
     echo -e "\n ================ \n ${Version} ${BlueBG} 喵喵插件版本信息 ${Font} \n ================ \n"
-    
     git log -1 --pretty=format:"%h - %an, %ar (%cd) : %s"
+
 fi
 
 if [ -d $XIAOYAO_CVS_PATH"/.git" ]; then
+
     echo -e "\n ================ \n ${Info} ${GreenBG} 拉取 xiaoyao-cvs 插件更新 ${Font} \n ================ \n"
+
     cd $XIAOYAO_CVS_PATH
-    
-    if [[ ! -z $(git status -s) ]]; then
+
+    if [[ -n $(git status -s) ]]; then
         echo -e " ${Warn} ${YellowBG} 当前工作区有修改，尝试暂存后更新。${Font}"
         git add .
         git stash
@@ -73,19 +87,21 @@ if [ -d $XIAOYAO_CVS_PATH"/.git" ]; then
     else
         git pull origin master --allow-unrelated-histories
     fi
-    
-    echo -e "\n ================ \n ${Info} ${GreenBG} 更新 xiaoyao-cvs 插件运行依赖 ${Font} \n ================ \n"
-    
-    pnpm add promise-retry superagent -w
-    
+
+    if [[ ! -f "$HOME/.ovo/xiaoyao.ok" ]]; then
+        set -e
+        echo -e "\n ================ \n ${Info} ${GreenBG} 更新 xiaoyao-cvs 插件运行依赖 ${Font} \n ================ \n"
+        pnpm add promise-retry superagent -w
+        touch ~/.ovo/xiaoyao.ok
+        set +e
+    fi
+
     echo -e "\n ================ \n ${Version} ${BlueBG} xiaoyao-cvs 插件版本信息 ${Font} \n ================ \n"
-    
+
     git log -1 --pretty=format:"%h - %an, %ar (%cd) : %s"
 fi
 
-if [[ ! -f "~/.ovo" ]]; then
-    touch ~/.ovo
-fi
+set -e
 
 cd $WORK_DIR
 
@@ -93,9 +109,8 @@ echo -e "\n ================ \n ${Info} ${GreenBG} 初始化 Docker 环境 ${Fon
 
 if [ -f "./config/config/redis.yaml" ]; then
     sed -i 's/127.0.0.1/redis/g' ./config/config/redis.yaml
+    echo -e "\n  修改Redis地址完成~  \n"
 fi
-
-set -e
 
 echo -e "\n ================ \n ${Info} ${GreenBG} 启动 Yunzai-Bot ${Font} \n ================ \n"
 
