@@ -13,7 +13,7 @@ export default class Today extends base {
   }
 
   async getData () {
-    if (moment().day() == 0) {
+    if (moment().day() == 0 && moment().hour() > 4) {
       this.e.reply('今天周日，全部素材都可以刷哦~')
       return false
     }
