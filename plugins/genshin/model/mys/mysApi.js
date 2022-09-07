@@ -173,10 +173,10 @@ export default class MysApi {
   getHeaders (query = '', body = '', sign = false) {
     if (sign) {
       return {
-        'x-rpc-app_version': '2.35.2',
+        'x-rpc-app_version': '2.36.1',
         'x-rpc-client_type': 5,
         'x-rpc-device_id': this.option.device_id || this.getGuid(),
-        'User-Agent': `Mozilla/5.0 (Linux; Android 12; ${this.device}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36 miHoYoBBS/2.35.2`,
+        'User-Agent': `Mozilla/5.0 (Linux; Android 12; ${this.device}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36 miHoYoBBS/2.36.1`,
         'X-Requested-With': 'com.mihoyo.hyperion',
         'x-rpc-platform': 'android',
         'x-rpc-device_model': this.device,
@@ -188,9 +188,9 @@ export default class MysApi {
       }
     }
     return {
-      'x-rpc-app_version': '2.35.2',
+      'x-rpc-app_version': '2.36.1',
       'x-rpc-client_type': 5,
-      'User-Agent': `Mozilla/5.0 (Linux; Android 12; ${this.device}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36 miHoYoBBS/2.35.2`,
+      'User-Agent': `Mozilla/5.0 (Linux; Android 12; ${this.device}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36 miHoYoBBS/2.36.1`,
       DS: this.getDs(query, body)
     }
   }
@@ -209,7 +209,7 @@ export default class MysApi {
   /** 签到ds */
   getDsSign () {
     /** @Womsxd */
-    const n = 'N50pqm7FSy2AkFz2B3TqtuZMJ5TOl3Ep'
+    const n = 'YVEIkzDFNHLeKXLxzqCA9TzxCpWwbIbk'
     const t = Math.round(new Date().getTime() / 1000)
     const r = lodash.sampleSize('abcdefghijklmnopqrstuvwxyz0123456789', 6).join('')
     const DS = md5(`salt=${n}&t=${t}&r=${r}`)
