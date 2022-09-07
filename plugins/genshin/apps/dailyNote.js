@@ -19,7 +19,7 @@ export class dailyNote extends plugin {
           fnc: 'note'
         },
         {
-          reg: '^(#签到|#*米游社(自动)*签到)$',
+          reg: '^(#签到|#*米游社(自动)*签到)(force)*$',
           fnc: 'sign'
         },
         {
