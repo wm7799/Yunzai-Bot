@@ -313,7 +313,7 @@ export default class MysSign extends base {
     if (invalidNum > 0) {
       msg += `\n失效：${invalidNum}个`
     }
-    if (verifyNum >= 5) {
+    if (contiNum >= 5) {
       msg += '\n\n验证码失败次数过多，已停止任务'
     }
 
