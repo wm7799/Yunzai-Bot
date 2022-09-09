@@ -203,11 +203,11 @@ export default class MysApi {
 
   getHeaders (query = '', body = '', sign = false) {
     const cn = {
-      "app_version": "2.26.1",
-      "User_Agent": `Mozilla/5.0 (Linux; Android 12; ${this.device}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36 miHoYoBBS/2.26.1`,
+      "app_version": "2.36.1",
+      "User_Agent": `Mozilla/5.0 (Linux; Android 12; ${this.device}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36 miHoYoBBS/2.36.1`,
       "client_type": 5,
       "Origin": "https://webstatic.mihoyo.com",
-      "X_Requested_With": "com.mihoyo.hyperion",
+      "X_Requested_With": 'com.mihoyo.hyperion',
       "Referer": "https://webstatic.mihoyo.com/bbs/event/signin-ys/index.html?bbs_auth_required=true&act_id=e202009291139501&utm_source=bbs&utm_medium=mys&utm_campaign=icon",
     };
     const os = {
@@ -265,7 +265,7 @@ export default class MysApi {
   /** 签到ds */
   getDsSign () {
     /** @Womsxd */
-    const n = 'N50pqm7FSy2AkFz2B3TqtuZMJ5TOl3Ep'
+    const n = 'YVEIkzDFNHLeKXLxzqCA9TzxCpWwbIbk'
     const t = Math.round(new Date().getTime() / 1000)
     const r = lodash.sampleSize('abcdefghijklmnopqrstuvwxyz0123456789', 6).join('')
     const DS = md5(`salt=${n}&t=${t}&r=${r}`)

@@ -21,6 +21,8 @@ export default class MysSign extends base {
   static async sign (e) {
     let mysSign = new MysSign(e)
 
+    if (e.msg.includes('force')) mysSign.force = true
+
     /** 获取个人ck */
     let ck = gsCfg.getBingCkSingle(e.user_id)
 
@@ -267,6 +269,7 @@ export default class MysSign extends base {
     let failNum = 0
     let invalidNum = 0
     let verifyNum = 0
+    let contiNum = 0
 
     for (let i in uids) {
       this.ckNum = Number(i) + 1
@@ -285,14 +288,19 @@ export default class MysSign extends base {
           sucNum++
         }
       } else {
-        if (this.is_verify) verifyNum++
+        if (this.is_verify) {
+          verifyNum++
+          contiNum++
+        } else {
+          contiNum = 0
+        }
         if (ret.is_invalid) {
           invalidNum++
         } else {
           failNum++
         }
       }
-      if (verifyNum > 3) {
+      if (contiNum >= 5) {
         break
       }
       if (this.signApi) {
@@ -305,7 +313,7 @@ export default class MysSign extends base {
     if (invalidNum > 0) {
       msg += `\n失效：${invalidNum}个`
     }
-    if (verifyNum > 3) {
+    if (contiNum >= 5) {
       msg += '\n\n验证码失败次数过多，已停止任务'
     }
 
