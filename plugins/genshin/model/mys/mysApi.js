@@ -111,7 +111,7 @@ export default class MysApi {
 
       urlMap.compute.url = `${host}event/e20210225calculate/v2/compute`// 未知
 
-      urlMap.ys_ledger.url = 'https://hk4e-api-os.mihoyo.com/event/ysledgeros/month_info'// 国际服札记
+      urlMap.ys_ledger.url = 'https://hk4e-api-os.mihoyo.com/event/ysledgeros/month_info'// 支持了国际服札记
     }
 
     if (!urlMap[type]) return false
