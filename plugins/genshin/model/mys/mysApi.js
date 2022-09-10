@@ -1,7 +1,8 @@
 import md5 from 'md5'
 import lodash from 'lodash'
 import fetch from 'node-fetch'
-import HttpsProxyAgent from "https-proxy-agent";
+
+let HttpsProxyAgent
 
 export default class MysApi {
   /**
@@ -29,7 +30,7 @@ export default class MysApi {
     if (['cn_gf01', 'cn_qd01'].includes(this.server)) {
       host = 'https://api-takumi.mihoyo.com/'
       hostRecord = 'https://api-takumi-record.mihoyo.com/'
-    }else if(['os_usa','os_euro','os_asia','os_cht'].includes(this.server)){
+    } else if (['os_usa', 'os_euro', 'os_asia', 'os_cht'].includes(this.server)) {
       host = 'https://api-os-takumi.mihoyo.com/'
       hostRecord = 'https://bbs-api-os.mihoyo.com/'
     }
@@ -94,23 +95,23 @@ export default class MysApi {
         query: `avatar_id=${data.avatar_id}`
       }
     }
-    if(this.server.startsWith("os")){
-      urlMap.bbs_sign_info.url = "https://hk4e-api-os.hoyoverse.com/event/sol/info"
+    if (this.server.startsWith('os')) {
+      urlMap.bbs_sign_info.url = 'https://hk4e-api-os.hoyoverse.com/event/sol/info'
       urlMap.bbs_sign_info.query = `act_id=e202102251931481&region=${this.server}&uid=${this.uid}`
 
-      urlMap.bbs_sign_home.url = "https://hk4e-api-os.hoyoverse.com/event/sol/home"
+      urlMap.bbs_sign_home.url = 'https://hk4e-api-os.hoyoverse.com/event/sol/home'
       urlMap.bbs_sign_home.query = `act_id=e202102251931481&region=${this.server}&uid=${this.uid}`
 
-      urlMap.bbs_sign.url = "https://hk4e-api-os.hoyoverse.com/event/sol/sign"
-      urlMap.bbs_sign.body = { act_id: "e202102251931481", region: this.server, uid: this.uid, }
+      urlMap.bbs_sign.url = 'https://hk4e-api-os.hoyoverse.com/event/sol/sign'
+      urlMap.bbs_sign.body = { act_id: 'e202102251931481', region: this.server, uid: this.uid }
 
-      urlMap.detail.url = host+"event/e20210225calculate/v1/sync/avatar/detail"//未知
+      urlMap.detail.url = host + 'event/e20210225calculate/v1/sync/avatar/detail'// 未知
 
-      urlMap.avatarSkill.url = `${host}event/e20210225calculate/v1/avatarSkill/list`//未知
+      urlMap.avatarSkill.url = `${host}event/e20210225calculate/v1/avatarSkill/list`// 未知
 
-      urlMap.compute.url = `${host}event/e20210225calculate/v2/compute`//未知
+      urlMap.compute.url = `${host}event/e20210225calculate/v2/compute`// 未知
 
-      urlMap.ys_ledger.url = "https://hk4e-api-os.hoyoverse.com/event/ys_ledger/monthInfo"//未知
+      urlMap.ys_ledger.url = 'https://hk4e-api-os.hoyoverse.com/event/ys_ledger/monthInfo'// 未知
     }
 
     if (!urlMap[type]) return false
@@ -133,14 +134,14 @@ export default class MysApi {
         return 'cn_gf01' // 官服
       case '5':
         return 'cn_qd01' // B服
-      case "6":
-        return "os_usa";  //美服
-      case "7":
-        return "os_euro"; //欧服
-      case "8":
-        return "os_asia"; //亚服
-      case "9":
-        return "os_cht";  //港澳台服
+      case '6':
+        return 'os_usa' // 美服
+      case '7':
+        return 'os_euro' // 欧服
+      case '8':
+        return 'os_asia' // 亚服
+      case '9':
+        return 'os_cht' // 港澳台服
     }
     return 'cn_gf01'
   }
@@ -157,7 +158,7 @@ export default class MysApi {
     headers.Cookie = this.cookie
     let param = {
       headers,
-      agent: (Bot.config.proxyAddress!=='http://0.0.0.0:0'&&this.server.startsWith("os")?new HttpsProxyAgent(Bot.config.proxyAddress):null),
+      agent: await this.getAgent(),
       timeout: 10000
     }
 
@@ -203,25 +204,25 @@ export default class MysApi {
 
   getHeaders (query = '', body = '', sign = false) {
     const cn = {
-      "app_version": "2.36.1",
-      "User_Agent": `Mozilla/5.0 (Linux; Android 12; ${this.device}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36 miHoYoBBS/2.36.1`,
-      "client_type": 5,
-      "Origin": "https://webstatic.mihoyo.com",
-      "X_Requested_With": 'com.mihoyo.hyperion',
-      "Referer": "https://webstatic.mihoyo.com/bbs/event/signin-ys/index.html?bbs_auth_required=true&act_id=e202009291139501&utm_source=bbs&utm_medium=mys&utm_campaign=icon",
-    };
-    const os = {
-      "app_version": "2.9.0",
-      "User_Agent": `Mozilla/5.0 (Linux; Android 12; ${this.device}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36 miHoYoBBSOversea/2.9.0`,
-      "client_type": "2",
-      "Origin": "https://webstatic-sea.hoyolab.com",
-      "X_Requested_With": "com.mihoyo.hoyolab",
-      "Referer": "https://webstatic-sea.hoyolab.com",
+      app_version: '2.36.1',
+      User_Agent: `Mozilla/5.0 (Linux; Android 12; ${this.device}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36 miHoYoBBS/2.36.1`,
+      client_type: 5,
+      Origin: 'https://webstatic.mihoyo.com',
+      X_Requested_With: 'com.mihoyo.hyperion',
+      Referer: 'https://webstatic.mihoyo.com/bbs/event/signin-ys/index.html?bbs_auth_required=true&act_id=e202009291139501&utm_source=bbs&utm_medium=mys&utm_campaign=icon'
     }
-    let client;
-    if(this.server.startsWith("os")){
+    const os = {
+      app_version: '2.9.0',
+      User_Agent: `Mozilla/5.0 (Linux; Android 12; ${this.device}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36 miHoYoBBSOversea/2.9.0`,
+      client_type: '2',
+      Origin: 'https://webstatic-sea.hoyolab.com',
+      X_Requested_With: 'com.mihoyo.hoyolab',
+      Referer: 'https://webstatic-sea.hoyolab.com'
+    }
+    let client
+    if (this.server.startsWith('os')) {
       client = os
-    }else{
+    } else {
       client = cn
     }
     if (sign) {
@@ -244,7 +245,7 @@ export default class MysApi {
       'x-rpc-app_version': client.app_version,
       'x-rpc-client_type': client.client_type,
       'User-Agent': client.User_Agent,
-      'Referer': client.Referer,
+      Referer: client.Referer,
       DS: this.getDs(query, body)
     }
   }
@@ -253,8 +254,8 @@ export default class MysApi {
     let n = ''
     if (['cn_gf01', 'cn_qd01'].includes(this.server)) {
       n = 'xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs'
-    }else if(['os_usa','os_euro','os_asia','os_cht'].includes(this.server)){
-      n = "okr4obncj8bw5a65hbnn5oo6ixjc3l9w"
+    } else if (['os_usa', 'os_euro', 'os_asia', 'os_cht'].includes(this.server)) {
+      n = 'okr4obncj8bw5a65hbnn5oo6ixjc3l9w'
     }
     let t = Math.round(new Date().getTime() / 1000)
     let r = Math.floor(Math.random() * 900000 + 100000)
@@ -293,5 +294,17 @@ export default class MysApi {
   get device () {
     if (!this._device) this._device = `Yz-${md5(this.uid).substring(0, 5)}`
     return this._device
+  }
+
+  async getAgent () {
+    if (Bot.config.proxyAddress === 'http://0.0.0.0:0') return null
+
+    if (!this.server.startsWith('os')) return null
+
+    if (!HttpsProxyAgent) {
+      HttpsProxyAgent = await import('https-proxy-agent')
+    }
+
+    return new HttpsProxyAgent(Bot.config.proxyAddress)
   }
 }
