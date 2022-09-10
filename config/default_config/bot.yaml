@@ -12,3 +12,5 @@ ffprobe_path:
 # chromium其他路径
 chromium_path: 
   
+# 代理地址
+proxyAddress:
