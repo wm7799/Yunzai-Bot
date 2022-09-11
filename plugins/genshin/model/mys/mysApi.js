@@ -302,9 +302,13 @@ export default class MysApi {
     if (!this.server.startsWith('os')) return null
 
     if (!HttpsProxyAgent) {
-      HttpsProxyAgent = await import('https-proxy-agent')
+      HttpsProxyAgent = await import('https-proxy-agent').catch((err) => {
+        logger.error(err)
+      })
     }
 
-    return new HttpsProxyAgent(Bot.config.proxyAddress)
+    if (HttpsProxyAgent) return new HttpsProxyAgent(Bot.config.proxyAddress)
+
+    return null
   }
 }
