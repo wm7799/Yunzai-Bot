@@ -120,9 +120,7 @@ if [ -d $GUOBA_PLUGIN_PATH"/.git" ]; then
     if [[ ! -f "$HOME/.ovo/guoba.ok" ]]; then
         set -e
         echo -e "\n ================ \n ${Info} ${GreenBG} 更新 Guoba-Plugin 插件运行依赖 ${Font} \n ================ \n"
-        cd $WORK_DIR
-        pnpm install
-        cd $GUOBA_PLUGIN_PATH
+        pnpm add multer body-parser jsonwebtoken -w
         touch ~/.ovo/guoba.ok
         set +e
     fi
