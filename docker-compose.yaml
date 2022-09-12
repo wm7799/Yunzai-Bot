@@ -1,4 +1,4 @@
-version: "3.9"
+version: "2.3"
 services:
   yunzai-bot:
     container_name: yunzai-bot
@@ -8,6 +8,8 @@ services:
     # image: sirly/yunzai-bot:v3                                        # Docker Hub源
     # image: sirly/yunzai-bot:v3plus 
     restart: always
+    ports:
+      - "50831:50831"                                                   # 映射锅巴插件端口，格式"主机端口:容器内部端口"
     volumes:
       - ./yunzai/config/:/app/Yunzai-Bot/config/config/                 # Bot基础配置文件
       - ./yunzai/genshin_config:/app/Yunzai-Bot/plugins/genshin/config  # 公共Cookie，云崽功能配置文件
@@ -17,6 +19,7 @@ services:
       # - ./yunzai/plugins/miao-plugin:/app/Yunzai-Bot/plugins/miao-plugin                  # 喵喵插件
       # - ./yunzai/plugins/py-plugin:/app/Yunzai-Bot/plugins/py-plugin                      # 新py插件
       # - ./yunzai/plugins/xiaoyao-cvs-plugin:/app/Yunzai-Bot/plugins/xiaoyao-cvs-plugin    # 图鉴插件
+      # - ./yunzai/plugins/Guoba-Plugin:/app/Yunzai-Bot/plugins/Guoba-Plugin                # 锅巴插件
     depends_on:
       redis: { condition: service_healthy }
 
