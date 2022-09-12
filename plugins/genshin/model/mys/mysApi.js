@@ -105,7 +105,7 @@ export default class MysApi {
       urlMap.bbs_sign.url = 'https://hk4e-api-os.hoyoverse.com/event/sol/sign'
       urlMap.bbs_sign.body = { act_id: 'e202102251931481', region: this.server, uid: this.uid }
 
-      urlMap.detail.url = host + 'event/e20210225calculate/v1/sync/avatar/detail'// 未知
+      urlMap.detail.url = 'https://sg-public-api.hoyolab.com/event/calculateos/sync/avatar/detail'// 角色天赋详情
 
       urlMap.avatarSkill.url = `${host}event/e20210225calculate/v1/avatarSkill/list`// 未知
 
@@ -307,7 +307,7 @@ export default class MysApi {
       })
     }
 
-    if (HttpsProxyAgent) return new HttpsProxyAgent(Bot.config.proxyAddress)
+    if (HttpsProxyAgent) return new HttpsProxyAgent.default(Bot.config.proxyAddress)
 
     return null
   }
