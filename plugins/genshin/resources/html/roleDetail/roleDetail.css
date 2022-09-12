@@ -950,3 +950,16 @@ body {
   background-size: 100%;
   background-position: 60px 0px;
 }
+.多莉_bg1 {
+  background: url(../../../../../data/roleDetail/多莉1.png) no-repeat;
+  background-size: auto 300px;
+  background-position: 100% 0%;
+}
+.多莉_drag {
+  background-position: -150px -55px;
+}
+.多莉_bg2 {
+  background-image: url(../../../../../data/roleDetail/多莉2.png);
+  background-size: 100%;
+  background-position: 60px 0px;
+}
