@@ -29,7 +29,7 @@ export class disPri extends plugin {
     /** 绑定ck，抽卡链接 */
     let wordReg = /(.*)(ltoken|_MHYUUID|authkey=)(.*)|导出记录(json)*|(记录|安卓|苹果|ck|cookie|体力)帮助|^帮助$/g
     /** 自定义通行字符 */
-    let disableReg=`(.*)(${cfg.other?.disableAdopt.join("|")})(.*)`
+    let disableReg=`(.*)(${cfg.other?.disableAdopt?.join("|")})(.*)`
     if (this.e.raw_message) {
       if (!new RegExp(wordReg).test(this.e.raw_message)&&(!new RegExp(disableReg).test(this.e.raw_message))) {
         this.sendTips()
