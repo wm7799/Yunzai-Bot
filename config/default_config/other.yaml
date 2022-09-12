@@ -9,7 +9,9 @@ masterQQ:
 disablePrivate: false
 # 禁用私聊Bot提示内容
 disableMsg: "私聊功能已禁用，仅支持发送cookie，抽卡记录链接，记录日志文件"
-
+# 私聊通行字符串
+disableAdopt:
+  - stoken
 #白名单群，配置后只在该群生效
 whiteGroup:
 
