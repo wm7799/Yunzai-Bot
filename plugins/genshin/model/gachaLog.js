@@ -121,15 +121,15 @@ export default class GachaLog extends base {
   }
 
   async checkUrl (param) {
-    if (param.region && !['cn_gf01', 'cn_qd01'].includes(param.region)) {
+    /* if (param.region && !['cn_gf01', 'cn_qd01'].includes(param.region)) {
       this.e.reply('仅支持国服抽卡历史链接')
       return false
-    }
+    } */
 
     let res = await this.logApi({
       size: 6,
       authkey: param.authkey
-    })
+    },param.region)
 
     if (res.retcode == -109) {
       await this.e.reply('2.3版本后，反馈的链接已无法查询！请用安卓方式获取链接')
@@ -171,13 +171,18 @@ export default class GachaLog extends base {
     }
   }
 
-  async logApi (param) {
+  async logApi (param,region) {
     // 调用一次接口判断链接是否正确
     let logUrl = 'https://hk4e-api.mihoyo.com/event/gacha_info/api/getGachaLog?'
+    let os = false
+    if(region&&!['cn_gf01', 'cn_qd01'].includes(region)){
+      logUrl = 'https://hk4e-api-os.mihoyo.com/event/gacha_info/api/getGachaLog?'
+      os = true
+    }
     let logParam = new URLSearchParams({
       authkey_ver: 1,
       lang: 'zh-cn', // 只支持简体中文
-      region: 'cn_gf01', // 只支持国服
+      region: (os?region:'cn_gf01'), // 国服只支持官服，国际服看有无bug
       gacha_type: 301,
       page: 1,
       size: 20,
@@ -201,7 +206,7 @@ export default class GachaLog extends base {
     if (!authkey) return false
 
     /** 调一次接口判断是否有效 */
-    let res = await this.logApi({ gacha_type: this.type, authkey })
+    let res = await this.logApi({ gacha_type: this.type, authkey },this.getServer())
 
     /** key过期，或者没有数据 */
     if (res.retcode !== 0 || !res?.data?.list || res.data.list.length <= 0) {
@@ -244,7 +249,7 @@ export default class GachaLog extends base {
       page,
       end_id: endId,
       authkey
-    })
+    },this.getServer())
 
     if (res.retcode != 0) {
       return { hasErr: true, list: [] }
@@ -672,5 +677,24 @@ export default class GachaLog extends base {
       line,
       hasMore
     }
+  }
+  getServer () {
+    let uid = this.uid
+    switch (String(uid)[0]) {
+      case '1':
+      case '2':
+        return 'cn_gf01' // 官服
+      case '5':
+        return 'cn_qd01' // B服
+      case '6':
+        return 'os_usa' // 美服
+      case '7':
+        return 'os_euro' // 欧服
+      case '8':
+        return 'os_asia' // 亚服
+      case '9':
+        return 'os_cht' // 港澳台服
+    }
+    return 'cn_gf01'
   }
 }
