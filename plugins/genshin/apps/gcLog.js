@@ -191,7 +191,7 @@ export class gcLog extends plugin {
     let msg = this.e.msg.replace(/#|帮助/g, '')
 
     if (['电脑', 'pc'].includes(msg)) {
-      await this.e.reply('3.0版本后，日志文件已不能获取抽取记录链接\n请用安卓方式获取，#安卓帮助查看教程')
+      await this.e.reply(segment.image(`file:///${_path}/resources/logHelp/记录帮助-电脑.png`))
     } else if (['安卓'].includes(msg)) {
       await this.e.reply(`安卓抽卡记录获取教程：${this.androidUrl}`)
     } else if (['苹果', 'ios'].includes(msg)) {
