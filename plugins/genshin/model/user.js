@@ -44,8 +44,9 @@ export default class User extends base {
 
     /** 拼接ck */
     this.ck = `ltoken=${param.ltoken};ltuid=${param.ltuid};cookie_token=${param.cookie_token}; account_id=${param.account_id};`
-    if (typeof (param.mi18nLang) === 'string') {
-      this.ck += ` mi18nLang=${param.mi18nLang};`// 国际服的标记
+    if (!(typeof (param.smidv2) === 'string')) {
+      //smidv2米游社特有的cookie参数
+      this.ck += ` mi18nLang=${param.mi18nLang};`// 标记这个ck是hoyolab的
     }
     this.ltuid = param.ltuid
 
