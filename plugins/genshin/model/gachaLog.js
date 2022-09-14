@@ -121,15 +121,16 @@ export default class GachaLog extends base {
   }
 
   async checkUrl (param) {
-    /* if (param.region && !['cn_gf01', 'cn_qd01'].includes(param.region)) {
-      this.e.reply('仅支持国服抽卡历史链接')
+    if (!param.region) {
+      this.e.reply('链接参数错误：缺少region\n请复制完整链接')
       return false
-    } */
+    }
 
     let res = await this.logApi({
       size: 6,
-      authkey: param.authkey
-    },param.region)
+      authkey: param.authkey,
+      region: param.region
+    })
 
     if (res.retcode == -109) {
       await this.e.reply('2.3版本后，反馈的链接已无法查询！请用安卓方式获取链接')
@@ -171,18 +172,18 @@ export default class GachaLog extends base {
     }
   }
 
-  async logApi (param,region) {
+  async logApi (param) {
     // 调用一次接口判断链接是否正确
     let logUrl = 'https://hk4e-api.mihoyo.com/event/gacha_info/api/getGachaLog?'
-    let os = false
-    if(region&&!['cn_gf01', 'cn_qd01'].includes(region)){
+
+    /** 国际服 */
+    if (!['cn_gf01', 'cn_qd01'].includes(param.region)) {
       logUrl = 'https://hk4e-api-os.mihoyo.com/event/gacha_info/api/getGachaLog?'
-      os = true
     }
+
     let logParam = new URLSearchParams({
       authkey_ver: 1,
       lang: 'zh-cn', // 只支持简体中文
-      region: (os?region:'cn_gf01'), // 国服只支持官服，国际服看有无bug
       gacha_type: 301,
       page: 1,
       size: 20,
@@ -206,7 +207,7 @@ export default class GachaLog extends base {
     if (!authkey) return false
 
     /** 调一次接口判断是否有效 */
-    let res = await this.logApi({ gacha_type: this.type, authkey },this.getServer())
+    let res = await this.logApi({ gacha_type: this.type, authkey, region: this.getServer() })
 
     /** key过期，或者没有数据 */
     if (res.retcode !== 0 || !res?.data?.list || res.data.list.length <= 0) {
@@ -248,8 +249,9 @@ export default class GachaLog extends base {
       gacha_type: this.type,
       page,
       end_id: endId,
-      authkey
-    },this.getServer())
+      authkey,
+      region: this.getServer()
+    })
 
     if (res.retcode != 0) {
       return { hasErr: true, list: [] }
@@ -678,6 +680,7 @@ export default class GachaLog extends base {
       hasMore
     }
   }
+
   getServer () {
     let uid = this.uid
     switch (String(uid)[0]) {
