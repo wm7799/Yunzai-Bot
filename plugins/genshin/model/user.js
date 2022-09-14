@@ -44,9 +44,6 @@ export default class User extends base {
 
     /** 拼接ck */
     this.ck = `ltoken=${param.ltoken};ltuid=${param.ltuid};cookie_token=${param.cookie_token}; account_id=${param.account_id};`
-    if (typeof (param.mi18nLang) === 'string') {
-      this.ck += ` mi18nLang=${param.mi18nLang};`// 国际服的标记
-    }
     this.ltuid = param.ltuid
 
     /** 米游币签到字段 */
@@ -54,9 +51,14 @@ export default class User extends base {
 
     /** 检查ck是否失效 */
     if (!await this.checkCk()) {
-      logger.mark(`绑定cookie错误：${this.checkMsg || 'cookie错误'}`)
-      await this.e.reply(`绑定cookie失败：${this.checkMsg || 'cookie错误'}`)
-      return
+      //米游社检查ck失效,尝试使用hoyolab
+      this.ck += ` mi18nLang=${param.mi18nLang};`// 国际服的标记
+      if (!await this.checkCk()) {
+        //连hoyolab都绑不了，则是真的失效
+        logger.mark(`绑定cookie错误：${this.checkMsg || 'cookie错误'}`)
+        await this.e.reply(`绑定cookie失败：${this.checkMsg || 'cookie错误'}`)
+        return
+      }
     }
 
     logger.mark(`${this.e.logFnc} 检查cookie正常 [uid:${this.uid}]`)
