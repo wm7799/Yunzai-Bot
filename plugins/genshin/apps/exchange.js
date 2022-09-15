@@ -6,7 +6,7 @@ export class exchange extends plugin {
   constructor (e) {
     super({
       name: '兑换码',
-      dsc: '兑换码',
+      dsc: '前瞻直播兑换码',
       event: 'message',
       priority: 1000,
       rule: [
@@ -35,16 +35,16 @@ export class exchange extends plugin {
     }
 
     let code = await this.getData('code')
-    if (!code || code.length <= 0) return
+    if (!code) return
 
     code = lodash.map(code, 'code')
     let msg = ''
     if (this.e.msg.includes('#')) {
       msg += code.join('\n')
     } else {
-      msg = `${mi18n['act-title']}-直播兑换码\n\n`
+      msg = `${mi18n['act-title']}-直播兑换码\n`
+      msg += `${mi18n['exchange-tips']}\n\n`
       msg += code.join('\n')
-      msg += `\n\n${mi18n['exchange-tips']}`
     }
 
     await this.reply(msg)
