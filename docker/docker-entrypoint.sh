@@ -101,6 +101,35 @@ if [ -d $XIAOYAO_CVS_PATH"/.git" ]; then
     git log -1 --pretty=format:"%h - %an, %ar (%cd) : %s"
 fi
 
+if [ -d $GUOBA_PLUGIN_PATH"/.git" ]; then
+
+    echo -e "\n ================ \n ${Info} ${GreenBG} 拉取 Guoba-Plugin 插件更新 ${Font} \n ================ \n"
+
+    cd $GUOBA_PLUGIN_PATH
+
+    if [[ -n $(git status -s) ]]; then
+        echo -e " ${Warn} ${YellowBG} 当前工作区有修改，尝试暂存后更新。${Font}"
+        git add .
+        git stash
+        git pull origin master --allow-unrelated-histories --rebase
+        git stash pop
+    else
+        git pull origin master --allow-unrelated-histories
+    fi
+
+    if [[ ! -f "$HOME/.ovo/guoba.ok" ]]; then
+        set -e
+        echo -e "\n ================ \n ${Info} ${GreenBG} 更新 Guoba-Plugin 插件运行依赖 ${Font} \n ================ \n"
+        pnpm add multer body-parser jsonwebtoken -w
+        touch ~/.ovo/guoba.ok
+        set +e
+    fi
+
+    echo -e "\n ================ \n ${Version} ${BlueBG} Guoba-Plugin 插件版本信息 ${Font} \n ================ \n"
+
+    git log -1 --pretty=format:"%h - %an, %ar (%cd) : %s"
+fi
+
 set -e
 
 cd $WORK_DIR

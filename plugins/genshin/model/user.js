@@ -44,16 +44,13 @@ export default class User extends base {
 
     /** 拼接ck */
     this.ck = `ltoken=${param.ltoken};ltuid=${param.ltuid};cookie_token=${param.cookie_token}; account_id=${param.account_id};`
-    if (typeof (param.mi18nLang) === 'string') {
-      this.ck += ` mi18nLang=${param.mi18nLang};`// 国际服的标记
-    }
     this.ltuid = param.ltuid
 
     /** 米游币签到字段 */
     this.login_ticket = param.login_ticket ?? ''
 
     /** 检查ck是否失效 */
-    if (!await this.checkCk()) {
+    if (!await this.checkCk(param)) {
       logger.mark(`绑定cookie错误：${this.checkMsg || 'cookie错误'}`)
       await this.e.reply(`绑定cookie失败：${this.checkMsg || 'cookie错误'}`)
       return
@@ -90,24 +87,28 @@ export default class User extends base {
   }
 
   /** 检查ck是否可用 */
-  async checkCk () {
-    let url = 'https://api-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_cn'
-    let appName = '米游社'
-    if (this.ck.indexOf('mi18nLang') != -1) {
-      url = 'https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global'
-      appName = 'Hoyolab'
+  async checkCk (param) {
+    let res
+    for (let type of ['mys', 'hoyolab']) {
+      let roleRes = await this.getrGameRoles(type)
+      if (roleRes?.retcode === 0) {
+        res = roleRes
+        /** 国际服的标记 */
+        if (type == 'hoyolab' && typeof (param.mi18nLang) === 'string') {
+          this.ck += ` mi18nLang=${param.mi18nLang};`
+        }
+        break
+      }
+      if (roleRes.retcode == -100) {
+        this.checkMsg = '该ck已失效，请重新登录获取'
+      }
+      this.checkMsg = roleRes.message || 'error'
     }
-    let res = await fetch(url, { method: 'get', headers: { Cookie: this.ck } })
-    if (!res.ok) return false
-    res = await res.json()
 
-    if (res.retcode != 0) {
-      this.checkMsg = res.message
-      return false
-    }
+    if (!res) return false
 
     if (!res.data.list || res.data.list.length <= 0) {
-      this.checkMsg = appName + '账号未绑定原神角色！'
+      this.checkMsg = '该账号尚未绑定原神角色！'
       return false
     }
 
@@ -131,6 +132,19 @@ export default class User extends base {
     }
 
     return this.uid
+  }
+
+  async getrGameRoles (server = 'mys') {
+    let url = {
+      mys: 'https://api-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_cn',
+      hoyolab: 'https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global'
+    }
+
+    let res = await fetch(url[server], { method: 'get', headers: { Cookie: this.ck } })
+    if (!res.ok) return false
+    res = await res.json()
+
+    return res
   }
 
   /** 保存ck */
@@ -219,7 +233,7 @@ export default class User extends base {
 
   /** 绑定uid */
   async bingUid () {
-    let uid = this.e.msg.match(/[1|2|5][0-9]{8}/g)
+    let uid = this.e.msg.match(/[1|2|5-9][0-9]{8}/g)
     if (!uid) return
 
     uid = uid[0]

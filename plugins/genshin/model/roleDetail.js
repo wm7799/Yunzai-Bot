@@ -176,7 +176,7 @@ export default class RoleDetail extends base {
 
     for (let val of skillList) {
       val.level_original = val.level_current
-      if (val.name.includes('普通攻击')) {
+      if (val.name.includes('普通攻击') || val.name.includes('Normal Attack')) {
         skill.a = val
         continue
       }
