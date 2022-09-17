@@ -1,4 +1,5 @@
 import plugin from '../../../lib/plugins/plugin.js'
+import common from '../../../lib/common/common.js'
 import fetch from 'node-fetch'
 import lodash from 'lodash'
 
@@ -11,17 +12,18 @@ export class exchange extends plugin {
       priority: 1000,
       rule: [
         {
-          reg: '^#*(直播)*兑换码$',
+          reg: '^#*(直播|前瞻)*兑换码$',
           fnc: 'getCode'
         }
       ]
     })
-
-    this.actId = '20220916ys3267'
   }
 
   async getCode () {
     this.now = parseInt(Date.now() / 1000)
+    let actid = await this.getActId()
+    if (!actid) return
+    this.actId = actid
 
     /** index info */
     let index = await this.getData('index')
@@ -39,7 +41,10 @@ export class exchange extends plugin {
 
     code = lodash.map(code, 'code')
     let msg = ''
-    if (this.e.msg.includes('#')) {
+    if (code.length >= 3) {
+      msg = [`${mi18n['act-title']}-直播兑换码`, `${mi18n['exchange-tips']}`, ...code]
+      msg = await common.makeForwardMsg(this.e, msg, msg[0])
+    } else if (this.e.msg.includes('#')) {
       msg += code.join('\n')
     } else {
       msg = `${mi18n['act-title']}-直播兑换码\n`
@@ -54,7 +59,8 @@ export class exchange extends plugin {
     let url = {
       index: `https://api-takumi.mihoyo.com/event/bbslive/index?act_id=${this.actId}`,
       mi18n: `https://webstatic.mihoyo.com/admin/mi18n/bbs_cn/${this.mi18n}/${this.mi18n}-zh-cn.json`,
-      code: `https://webstatic.mihoyo.com/bbslive/code/${this.actId}.json?version=1&time=${this.now}`
+      code: `https://webstatic.mihoyo.com/bbslive/code/${this.actId}.json?version=1&time=${this.now}`,
+      actId: 'https://bbs-api.mihoyo.com/post/wapi/getPostFullInCollection?collection_id=1280130&gids=2&order_type=2'
     }
 
     let response
@@ -71,5 +77,16 @@ export class exchange extends plugin {
     }
     const res = await response.json()
     return res
+  }
+
+  async getActId () {
+    let ret = await this.getData('actId')
+    if (!ret || ret.retcode !== 0) return false
+
+    let post = ret.data.posts[0]
+    let actId = post.post.content.replace('[链接]', '')
+    if (!actId) return false
+
+    return actId
   }
 }
