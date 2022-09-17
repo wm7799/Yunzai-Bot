@@ -127,11 +127,17 @@ export default class MysInfo {
 
     /** 绑定的uid */
     uid = await redis.get(`${MysInfo.key.qqUid}${e.user_id}`)
-    if (uid) return String(uid)
+    if (uid) {
+      await redis.expire(`${MysInfo.key.qqUid}${e.user_id}`, 3600 * 24 * 30)
+      return String(uid)
+    }
 
     /** 群名片 */
     uid = matchUid(e.sender.card)
-    if (uid) return String(uid)
+    if (uid) {
+      MysInfo.uidBingQQ(e, uid)
+      return String(uid)
+    }
 
     if (e.noTips !== true) e.reply('请先#绑定uid', false, { at })
 
@@ -167,6 +173,8 @@ export default class MysInfo {
   static async uidBingQQ (e, uid) {
     if (!await redis.get(`${MysInfo.key.qqUid}${e.user_id}`)) {
       await redis.setEx(`${MysInfo.key.qqUid}${e.user_id}`, 3600 * 24 * 30, String(uid))
+    } else {
+      await redis.expire(`${MysInfo.key.qqUid}${e.user_id}`, 3600 * 24 * 30)
     }
   }
 
