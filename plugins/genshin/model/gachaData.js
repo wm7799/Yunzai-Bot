@@ -3,6 +3,9 @@ import gsCfg from './gsCfg.js'
 import lodash from 'lodash'
 import moment from 'moment'
 import fetch from 'node-fetch'
+import fs from 'node:fs'
+
+let imgFile = {}
 
 export default class GachaData extends base {
   /**
@@ -31,6 +34,7 @@ export default class GachaData extends base {
 
   static async init (e) {
     let gacha = new GachaData(e)
+    gacha.initFile()
     /** 抽卡类型 */
     gacha.getTpye()
     /** 用户抽卡数据 */
@@ -286,6 +290,7 @@ export default class GachaData extends base {
       isBigUP,
       isBing,
       have,
+      imgFile: imgFile[tmpName] || `${tmpName}.png`,
       rand: lodash.random(1, 7)
     })
 
@@ -356,6 +361,7 @@ export default class GachaData extends base {
       type,
       element: this.ele[tmpName] || '',
       index: this.index,
+      imgFile: imgFile[tmpName] || `${tmpName}.png`,
       have
     })
 
@@ -370,7 +376,8 @@ export default class GachaData extends base {
       star: 3,
       type: 'weapon',
       element: this.ele[tmpName] || '',
-      index: this.index
+      index: this.index,
+      imgFile: imgFile[tmpName] || `${tmpName}.png`
     })
 
     return true
@@ -505,5 +512,20 @@ export default class GachaData extends base {
 
   getWeekEnd () {
     return Number(moment().day(7).endOf('day').format('X'))
+  }
+
+  initFile () {
+    if (imgFile['刻晴']) return imgFile
+    let path = './plugins/genshin/resources/img/gacha/'
+    let character = fs.readdirSync(path + 'character/')
+    let weapon = fs.readdirSync(path + 'weapon/')
+
+    let nameSet = (v) => {
+      let name = v.split('.')
+      imgFile[name[0]] = v
+    }
+    character.forEach(v => nameSet(v))
+    weapon.forEach(v => nameSet(v))
+    return imgFile
   }
 }
