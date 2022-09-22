@@ -12,5 +12,5 @@ ffprobe_path:
 # chromium其他路径
 chromium_path: 
   
-# 代理地址
-proxyAddress:
+# 米游社接口代理地址，国际服用
+proxyAddress: 

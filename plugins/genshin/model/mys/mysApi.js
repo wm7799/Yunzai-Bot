@@ -1,8 +1,9 @@
 import md5 from 'md5'
 import lodash from 'lodash'
 import fetch from 'node-fetch'
+import cfg from '../../../../lib/config/config.js'
 
-let HttpsProxyAgent
+let HttpsProxyAgent = ''
 
 export default class MysApi {
   /**
@@ -110,7 +111,7 @@ export default class MysApi {
 
       urlMap.avatarSkill.url = `${host}event/e20210225calculate/v1/avatarSkill/list`// 国际服不支持，养成计算中如果目标玩家uid不存在指定养成角色将会调用该接口，国际服暂时找不到对应接口
 
-      urlMap.compute.url = `https://sg-public-api.hoyolab.com/event/calculateos/sync/avatar/detail`// 养成计算(国际服不支持)
+      urlMap.compute.url = 'https://sg-public-api.hoyolab.com/event/calculateos/sync/avatar/detail'// 养成计算(国际服不支持)
 
       urlMap.ys_ledger.url = 'https://hk4e-api-os.mihoyo.com/event/ysledgeros/month_info'// 支持了国际服札记
       urlMap.ys_ledger.query = `lang=zh-cn&month=${data.month}&uid=${this.uid}&region=${this.server}`
@@ -158,6 +159,12 @@ export default class MysApi {
     if (cahce) return JSON.parse(cahce)
 
     headers.Cookie = this.cookie
+
+    if (data.headers) {
+      headers = { ...headers, ...data.headers }
+      delete data.headers
+    }
+
     let param = {
       headers,
       agent: await this.getAgent(),
@@ -299,17 +306,23 @@ export default class MysApi {
   }
 
   async getAgent () {
-    if (Bot.config.proxyAddress === 'http://0.0.0.0:0') return null
+    let proxyAddress = cfg.bot.proxyAddress
+    if (!proxyAddress) return null
+    if (proxyAddress === 'http://0.0.0.0:0') return null
 
     if (!this.server.startsWith('os')) return null
 
-    if (!HttpsProxyAgent) {
+    if (HttpsProxyAgent === '') {
       HttpsProxyAgent = await import('https-proxy-agent').catch((err) => {
         logger.error(err)
       })
+
+      HttpsProxyAgent = HttpsProxyAgent ? HttpsProxyAgent.default : undefined
     }
 
-    if (HttpsProxyAgent) return new HttpsProxyAgent.default(Bot.config.proxyAddress)
+    if (HttpsProxyAgent) {
+      return new HttpsProxyAgent(proxyAddress)
+    }
 
     return null
   }

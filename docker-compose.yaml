@@ -29,8 +29,11 @@ services:
     image: redis:alpine
     restart: always
     volumes:
+      # 前往 https://download.redis.io/redis-stable/redis.conf 下载配置文件，放入 ./redis/config 文件夹中
+      # - ./redis/config:/etc/redis/    # Redis配置文件
       - ./redis/data:/data
       - ./redis/logs:/logs
+    # command: /etc/redis/redis.conf    # 取消注释以应用Redis配置文件
     healthcheck:
       test: [ "CMD", "redis-cli", "PING" ]
       start_period: 10s

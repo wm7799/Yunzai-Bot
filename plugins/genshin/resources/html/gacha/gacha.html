@@ -34,11 +34,11 @@
             <img class="item-shadow2" src="{{pluResPath}}img/gacha/items/bg2.png"/>
             {{if $value.type=='weapon'}}
               <div class="item-weapon-box">
-                <img class="item-weapon-img" src="{{pluResPath}}img/gacha/{{$value.type}}/{{$value.name}}.png"/>
+                <img class="item-weapon-img" src="{{pluResPath}}img/gacha/{{$value.type}}/{{$value.imgFile}}"/>
               </div>
             {{else}}
               <div class="item-img-box {{if $value.have && $value.type == 'role'}}fiveHave{{/if}}">
-                <img class="item-character-img" src="{{pluResPath}}img/gacha/character/{{$value.name}}.png"/>
+                <img class="item-character-img" src="{{pluResPath}}img/gacha/character/{{$value.imgFile}}"/>
               </div>
             {{/if}}
             
