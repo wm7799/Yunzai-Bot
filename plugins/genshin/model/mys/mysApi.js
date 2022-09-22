@@ -107,11 +107,12 @@ export default class MysApi {
       urlMap.bbs_sign.body = { act_id: 'e202102251931481', region: this.server, uid: this.uid }
 
       urlMap.detail.url = 'https://sg-public-api.hoyolab.com/event/calculateos/sync/avatar/detail'// 角色天赋详情
-      urlMap.detail.query = `uid=${this.uid}&region=${this.server}&avatar_id=${data.avatar_id}`
+      urlMap.detail.query = `lang=zh-cn&uid=${this.uid}&region=${this.server}&avatar_id=${data.avatar_id}`
 
-      urlMap.avatarSkill.url = `${host}event/e20210225calculate/v1/avatarSkill/list`// 国际服不支持，养成计算中如果目标玩家uid不存在指定养成角色将会调用该接口，国际服暂时找不到对应接口
+      urlMap.avatarSkill.url = `https://sg-public-api.hoyolab.com/event/calculateos/avatar/skill_list`//查询未持有的角色天赋
+      urlMap.avatarSkill.query = `lang=zh-cn&avatar_id=${data.avatar_id}`
 
-      urlMap.compute.url = 'https://sg-public-api.hoyolab.com/event/calculateos/sync/avatar/detail'// 养成计算(国际服不支持)
+      urlMap.compute.url = 'https://sg-public-api.hoyolab.com/event/calculateos/compute'// 已支持养成计算
 
       urlMap.ys_ledger.url = 'https://hk4e-api-os.mihoyo.com/event/ysledgeros/month_info'// 支持了国际服札记
       urlMap.ys_ledger.query = `lang=zh-cn&month=${data.month}&uid=${this.uid}&region=${this.server}`
