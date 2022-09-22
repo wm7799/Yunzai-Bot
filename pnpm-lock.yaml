@@ -7,6 +7,7 @@ importers:
       art-template: ^4.13.2
       chalk: ^5.0.1
       chokidar: ^3.5.3
+      enka-network-api: git+https://github.com/yuko1101/enka-network-api.git
       eslint: ^8.18.0
       eslint-config-standard: ^17.0.0
       eslint-plugin-import: ^2.26.0
@@ -32,6 +33,7 @@ importers:
       art-template: 4.13.2
       chalk: 5.0.1
       chokidar: 3.5.3
+      enka-network-api: github.com/yuko1101/enka-network-api/b253879ba9c7d7a548772937e515133c61a42ae4
       https-proxy-agent: 5.0.1
       inquirer: 8.2.4
       lodash: 4.17.21
@@ -3406,4 +3408,14 @@ packages:
     dependencies:
       buffer-crc32: 0.2.13
       fd-slicer: 1.1.0
+    dev: false
+
+  github.com/yuko1101/enka-network-api/b253879ba9c7d7a548772937e515133c61a42ae4:
+    resolution: {tarball: https://codeload.github.com/yuko1101/enka-network-api/tar.gz/b253879ba9c7d7a548772937e515133c61a42ae4}
+    name: enka-network-api
+    version: 1.0.0
+    dependencies:
+      node-fetch: 2.6.7
+    transitivePeerDependencies:
+      - encoding
     dev: false
