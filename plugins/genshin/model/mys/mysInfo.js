@@ -512,10 +512,15 @@ export default class MysInfo {
         if (/(登录|login)/i.test(res.message)) {
           if (this.ckInfo.uid) {
             logger.mark(`[ck失效][uid:${this.uid}][qq:${this.userId}]`)
-            this.e.reply(`UID:${this.ckInfo.uid}，米游社cookie已失效，请重新绑定cookie`)
+            if (this.ckInfo.type == 'public') {
+              this.e.reply('米游社查询失败，请稍后再试')
+            } else {
+              this.e.reply(`UID:${this.ckInfo.uid}，米游社cookie已失效`)
+            }
           } else {
             logger.mark(`[公共ck失效][ltuid:${this.ckInfo.ltuid}]`)
-            this.e.reply(`查询失败，公共ck已失效，ltuid:${this.ckInfo.ltuid}`)
+            // this.e.reply(`查询失败，公共ck已失效，ltuid:${this.ckInfo.ltuid}`)
+            this.e.reply('米游社查询失败，请稍后再试')
           }
           await this.delCk()
         } else {
@@ -555,6 +560,7 @@ export default class MysInfo {
   /** 删除失效ck */
   async delCk () {
     let ltuid = this.ckInfo.ltuid
+    delete tmpCk[this.uid]
 
     /** 记录公共ck失效 */
     if (this.ckInfo.type == 'public') {
@@ -570,7 +576,7 @@ export default class MysInfo {
 
     if (this.ckInfo.type == 'self' || this.ckInfo.type == 'bing') {
       /** 获取用户绑定ck */
-      let ck = GsCfg.getBingCkSingle(this.userId)
+      let ck = GsCfg.getBingCkSingle(this.ckInfo.qq)
       let tmp = ck[this.ckInfo.uid]
       if (tmp) {
         ltuid = tmp.ltuid
@@ -578,7 +584,7 @@ export default class MysInfo {
         logger.mark(`[删除失效绑定ck][qq:${this.userId}]`)
         /** 删除文件保存ck */
         delete ck[this.ckInfo.uid]
-        GsCfg.saveBingCk(this.userId, ck)
+        GsCfg.saveBingCk(this.ckInfo.qq, ck)
 
         await this.redisDel(ltuid)
 
