@@ -258,8 +258,10 @@ export default class MysInfo {
     if (!this.ckInfo.ck) {
       if (lodash.isEmpty(pubCk)) {
         this.e.reply('请先配置公共查询ck')
-      } else {
+      } else if (this.ckInfo.type == 'public') {
         this.e.reply('公共ck查询次数已用完，暂无法查询新uid')
+      } else {
+        this.e.reply('米游社查询失败，请稍后再试')
       }
     }
 
@@ -374,6 +376,8 @@ export default class MysInfo {
   }
 
   async getPublicCK () {
+    this.ckInfo.type = 'public'
+
     if (lodash.isEmpty(pubCk)) {
       logger.mark('请先#配置公共查询ck')
       return false
@@ -401,7 +405,6 @@ export default class MysInfo {
 
     this.ckInfo.ck = pubCk[ltuid]
     this.ckInfo.ltuid = ltuid
-    this.ckInfo.type = 'public'
 
     /** 非原子操作,可能存在误差 */
 
