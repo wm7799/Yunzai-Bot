@@ -147,6 +147,10 @@ export default class Calculator extends base {
       ]
     }
 
+    if (this.mysApi.getServer().startsWith('os')) {
+      body.lang = "zh-cn"
+    }
+
     if (this.dataCharacter.weapon) {
       if (Number(this.dataCharacter.weapon.rarity) < 3) {
         this.setSkill[1] = 70
