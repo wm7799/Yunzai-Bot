@@ -153,17 +153,18 @@ class GsCfg {
 
     return ''
   }
+
   /**
    * 原神武器id转换成武器名字
    */
-   getWeaponDataByWeaponHash(hash){
-    let data = this.getdefSet('weapon','data')
+  getWeaponDataByWeaponHash (hash) {
+    let data = this.getdefSet('weapon', 'data')
     let weaponData = {}
     weaponData.name = data.Name[hash]
     weaponData.type = data.Type[weaponData.name]
     weaponData.icon = data.Icon[weaponData.name]
     return weaponData
-   }
+  }
 
   /** 原神角色别名转id */
   roleNameToID (keyword) {
@@ -285,46 +286,50 @@ class GsCfg {
       fs.copyFileSync(`./plugins/genshin/defSet/${app}/${name}.yaml`, set)
     }
   }
+
   /**
    * 根据角色名获取对应的元素类型
    */
-  getElementByRoleName(roleName){
-    let element = this.getdefSet('element','role')
+  getElementByRoleName (roleName) {
+    let element = this.getdefSet('element', 'role')
     if (element[roleName]) {
       return element[roleName]
     }
   }
+
   /**
    * 根据技能id获取对应的技能数据,角色名用于命座加成的技能等级
    */
-   getSkillDataByskillId(skillId,roleName){
-    let skillMap = this.getdefSet('skill','data')
+  getSkillDataByskillId (skillId, roleName) {
+    let skillMap = this.getdefSet('skill', 'data')
     let skillData = {}
     if (skillMap.Name[skillId]) {
       skillData.name = skillMap.Name[skillId]
     }
-    if(skillMap.Icon[skillId]){
+    if (skillMap.Icon[skillId]) {
       skillData.icon = skillMap.Icon[skillId]
     }
-    if(skillMap.Talent[roleName]){
+    if (skillMap.Talent[roleName]) {
       skillData.talent = skillMap.Talent[roleName]
     }
     return skillData
   }
-  fightPropIdToName(propId){
-    let propMap = this.getdefSet('prop','prop')
+
+  fightPropIdToName (propId) {
+    let propMap = this.getdefSet('prop', 'prop')
     if (propMap[propId]) {
       return propMap[propId]
     }
     return ''
   }
-  getRoleTalentByTalentId(talentId){
-    let talentMap = this.getdefSet('role','talent')
+
+  getRoleTalentByTalentId (talentId) {
+    let talentMap = this.getdefSet('role', 'talent')
     let talent = {}
     if (talentMap.Name[talentId]) {
       talent.name = talentMap.Name[talentId]
     }
-    if(talentMap.Icon[talentId]){
+    if (talentMap.Icon[talentId]) {
       talent.icon = talentMap.Icon[talentId]
     }
     return talent
