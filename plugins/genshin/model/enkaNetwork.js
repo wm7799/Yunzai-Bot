@@ -8,6 +8,10 @@ import puppeteer from '../../../lib/puppeteer/puppeteer.js'
 import fs from 'node:fs'
 import common from '../../../lib/common/common.js'
 
+if (!fs.existsSync('./data/enkaNetwork/')) {
+  fs.mkdirSync('./data/enkaNetwork/')
+}
+
 export default class EnkaNetWork extends base {
   constructor (e) {
     super(e)
