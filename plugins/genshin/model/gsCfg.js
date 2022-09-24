@@ -109,12 +109,17 @@ class GsCfg {
 
     res.forEach((v) => {
       let tmp = YAML.parse(v)
-      lodash.forEach(tmp, (v, i) => {
-        ck[String(i)] = v
-        if (v.isMain && !ckQQ[String(v.qq)]) {
-          ckQQ[String(v.qq)] = v
+      let qq
+      lodash.forEach(tmp, (item, uid) => {
+        qq = item.qq
+        ck[String(uid)] = item
+        if (item.isMain && !ckQQ[String(item.qq)]) {
+          ckQQ[String(item.qq)] = item
         }
       })
+      if (qq && !ckQQ[String(qq)]) {
+        ckQQ[String(qq)] = Object.values(tmp)[0]
+      }
     })
 
     return { ck, ckQQ }

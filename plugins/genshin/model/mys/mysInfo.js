@@ -587,13 +587,23 @@ export default class MysInfo {
         logger.mark(`[删除失效绑定ck][qq:${this.userId}]`)
         /** 删除文件保存ck */
         delete ck[this.ckInfo.uid]
-        GsCfg.saveBingCk(this.ckInfo.qq, ck)
-
-        await this.redisDel(ltuid)
-
         delete pubCk[ltuid]
         delete bingCkUid[tmp.uid]
         delete bingCkQQ[tmp.qq]
+        /** 将下一个ck设为主ck */
+        if (tmp.isMain && lodash.size(ck) >= 1) {
+          for (let i in ck) {
+            if (!ck[i].isMain) {
+              ck[i].isMain = true
+              bingCkQQ[tmp.qq] = ck[i]
+              await redis.setEx(`${MysInfo.key.qqUid}${this.userId}`, 3600 * 24 * 30, String(ck[i].uid))
+              break
+            }
+          }
+        }
+        GsCfg.saveBingCk(this.ckInfo.qq, ck)
+
+        await this.redisDel(ltuid)
       }
     }
 
