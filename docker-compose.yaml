@@ -15,7 +15,9 @@ services:
       - ./yunzai/genshin_config:/app/Yunzai-Bot/plugins/genshin/config  # 公共Cookie，云崽功能配置文件
       - ./yunzai/logs:/app/Yunzai-Bot/logs                              # 日志文件
       - ./yunzai/data:/app/Yunzai-Bot/data                              # 数据文件
-      # 以下目录是插件目录，安装完插件后需要手动添加映射
+      # 以下目录是插件目录，安装完插件后需要手动添加映射（如有其他插件请自行添加）
+      # 映射格式：./yunzai/plugins/<插件目录名>:/app/Yunzai-Bot/plugins/<插件目录名>
+      # - ./yunzai/plugins/example:/app/Yunzai-Bot/plugins/example                          # 单js插件目录
       # - ./yunzai/plugins/miao-plugin:/app/Yunzai-Bot/plugins/miao-plugin                  # 喵喵插件
       # - ./yunzai/plugins/py-plugin:/app/Yunzai-Bot/plugins/py-plugin                      # 新py插件
       # - ./yunzai/plugins/xiaoyao-cvs-plugin:/app/Yunzai-Bot/plugins/xiaoyao-cvs-plugin    # 图鉴插件
