@@ -109,7 +109,7 @@ export default class MysApi {
       urlMap.detail.url = 'https://sg-public-api.hoyolab.com/event/calculateos/sync/avatar/detail'// 角色天赋详情
       urlMap.detail.query = `lang=zh-cn&uid=${this.uid}&region=${this.server}&avatar_id=${data.avatar_id}`
 
-      urlMap.avatarSkill.url = `https://sg-public-api.hoyolab.com/event/calculateos/avatar/skill_list`//查询未持有的角色天赋
+      urlMap.avatarSkill.url = 'https://sg-public-api.hoyolab.com/event/calculateos/avatar/skill_list'// 查询未持有的角色天赋
       urlMap.avatarSkill.query = `lang=zh-cn&avatar_id=${data.avatar_id}`
 
       urlMap.compute.url = 'https://sg-public-api.hoyolab.com/event/calculateos/compute'// 已支持养成计算
@@ -214,7 +214,7 @@ export default class MysApi {
 
   getHeaders (query = '', body = '', sign = false) {
     const cn = {
-      app_version: '2.36.1',
+      app_version: '2.37.1',
       User_Agent: `Mozilla/5.0 (Linux; Android 12; ${this.device}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.73 Mobile Safari/537.36 miHoYoBBS/2.36.1`,
       client_type: 5,
       Origin: 'https://webstatic.mihoyo.com',
@@ -276,7 +276,7 @@ export default class MysApi {
   /** 签到ds */
   getDsSign () {
     /** @Womsxd */
-    const n = 'YVEIkzDFNHLeKXLxzqCA9TzxCpWwbIbk'
+    const n = 'Qqx8cyv7kuyD8fTw11SmvXSFHp7iZD29'
     const t = Math.round(new Date().getTime() / 1000)
     const r = lodash.sampleSize('abcdefghijklmnopqrstuvwxyz0123456789', 6).join('')
     const DS = md5(`salt=${n}&t=${t}&r=${r}`)

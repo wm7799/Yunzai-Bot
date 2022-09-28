@@ -18,7 +18,7 @@ export default class base {
    * @param pluResPath 插件资源路径
    */
   get screenData () {
-    let headImg = '甘雨'
+    let headImg = '妮露'
 
     return {
       saveId: this.userId,
