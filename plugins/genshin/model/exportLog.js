@@ -129,8 +129,12 @@ export default class ExportLog extends base {
     let tmpId = {}
     for (let v of this.pool) {
       let json = `${this.path}${this.uid}/${v.type}.json`
-      json = JSON.parse(fs.readFileSync(json, 'utf8'))
-      json = json.reverse()
+      if (fs.existsSync(json)) {
+        json = JSON.parse(fs.readFileSync(json, 'utf8'))
+        json = json.reverse()
+      } else {
+        json = []
+      }
       res[v.type] = json
       for (let v of json) {
         if (v.gacha_type == 301 || v.gacha_type == 400) {
