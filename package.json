@@ -32,7 +32,7 @@
     "redis": "^4.1.0",
     "yaml": "^2.1.1",
     "https-proxy-agent":"5.0.1",
-    "enka-network-api":"git+https://github.com/yuko1101/enka-network-api.git"
+    "enka-network-api":"^1.0.1"
   },
   "devDependencies": {
     "eslint": "^8.18.0",
