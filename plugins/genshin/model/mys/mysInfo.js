@@ -2,6 +2,7 @@ import MysApi from './mysApi.js'
 import GsCfg from '../gsCfg.js'
 import lodash from 'lodash'
 import moment from 'moment'
+import schedule from 'node-schedule'
 
 /** 公共ck */
 let pubCk = {}
@@ -159,8 +160,19 @@ export default class MysInfo {
     }
 
     if (!e.user_id || !bingCkQQ[e.user_id] || !bingCkQQ[e.user_id].uid) {
-      if (e.noTips !== true) e.reply(MysInfo.tips, false, { at })
-      return false
+      let ck = GsCfg.getBingCkSingle(e.user_id)
+      if (!lodash.isEmpty(ck)) {
+        for (let i in ck) {
+          if (ck[i].isMain) {
+            bingCkQQ[e.user_id] = ck[i]
+            return bingCkQQ[e.user_id].uid
+          }
+        }
+        return false
+      } else {
+        if (e.noTips !== true) e.reply(MysInfo.tips, false, { at })
+        return false
+      }
     }
 
     /** 当前查询uid不是绑定的uid */
@@ -397,6 +409,14 @@ export default class MysInfo {
 
     let ltuid = list[0]
 
+    for (let i = 0; i <= 27; i++) {
+      list = await redis.zRangeByScore(MysInfo.key.count, i, i, true)
+      if (!lodash.isEmpty(list)) {
+        ltuid = lodash.sample(list)
+        break
+      }
+    }
+
     if (!pubCk[ltuid]) {
       logger.mark(`公共查询ck错误[ltuid:${ltuid}]`)
       await redis.zAdd(MysInfo.key.count, { score: 99, value: ltuid })
@@ -438,8 +458,9 @@ export default class MysInfo {
     let userNum = 0
     if (set.allowUseCookie == 1) {
       await this.initBingCk()
-      lodash.forEach(bingCkUid, async v => {
-        if (pubCk[v.ltuid]) return
+      let tmpCkUid = lodash.map(bingCkUid)
+      for (let v of tmpCkUid) {
+        if (pubCk[v.ltuid]) continue
         pubCk[v.ltuid] = v.ck
 
         userNum++
@@ -447,7 +468,7 @@ export default class MysInfo {
         if (!ckList.includes(v.ltuid)) {
           await redis.zAdd(MysInfo.key.count, { score: 0, value: String(v.ltuid) })
         }
-      })
+      }
     }
 
     this.expire(MysInfo.key.count)
@@ -491,6 +512,11 @@ export default class MysInfo {
     bingCkUid = res.ck
     bingCkQQ = res.ckQQ
     bingCkLtuid = lodash.keyBy(bingCkUid, 'ltuid')
+
+    schedule.scheduleJob('0 0 0 * * ? ', () => {
+      pubCk = {}
+      bingCkUid = {}
+    })
   }
 
   async checkCode (res, type) {
