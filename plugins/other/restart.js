@@ -61,9 +61,10 @@ export class Restart extends plugin {
     try {
       await redis.set(this.key, data, { EX: 120 })
 
-      let cm = 'pnpm start'
+      let npm = process.env._.includes('pnpm') ? 'pnpm' : 'npm'
+      let cm = `${npm} start`
       if (process.argv[1].includes('pm2')) {
-        cm = 'pnpm run restart'
+        cm = `${npm} run restart`
       } else {
         await this.e.reply('当前为前台运行，重启将转为后台...')
       }
@@ -75,8 +76,8 @@ export class Restart extends plugin {
           logger.error(`重启失败\n${error.stack}`)
         } else if (stdout) {
           logger.mark('重启成功，运行已由前台转为后台')
-          logger.mark('查看日志请用命令：pnpm run log')
-          logger.mark('停止后台运行命令：pnpm stop')
+          logger.mark('查看日志请用命令：npm run log')
+          logger.mark('停止后台运行命令：npm stop')
           process.exit()
         }
       })
@@ -99,7 +100,8 @@ export class Restart extends plugin {
     logger.mark('关机成功，已停止运行')
     await this.e.reply('关机成功，已停止运行')
 
-    exec('pnpm stop', { windowsHide: true }, (error, stdout, stderr) => {
+    let npm = process.env._.includes('pnpm') ? 'pnpm' : 'npm'
+    exec(`${npm} stop`, { windowsHide: true }, (error, stdout, stderr) => {
       if (error) {
         this.e.reply(`操作失败！\n${error.stack}`)
         logger.error(`关机失败\n${error.stack}`)
