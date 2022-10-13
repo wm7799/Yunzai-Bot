@@ -210,7 +210,7 @@ export default class MysSign extends base {
       return false
     }
 
-    if (sign.retcode === 0 && sign?.data.success === 0) {
+    if (sign.retcode === 0 && (sign?.data.success === 0 || sign?.message === 'OK')) {
       logger.mark(`[原神签到成功]${this.log} 第${this.ckNum}个`)
       return true
     }
