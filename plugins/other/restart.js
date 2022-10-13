@@ -61,7 +61,7 @@ export class Restart extends plugin {
     try {
       await redis.set(this.key, data, { EX: 120 })
 
-      let npm = process.env._.includes('pnpm') ? 'pnpm' : 'npm'
+      let npm = process.env?._?.includes('pnpm') ? 'pnpm' : 'npm'
       let cm = `${npm} start`
       if (process.argv[1].includes('pm2')) {
         cm = `${npm} run restart`
