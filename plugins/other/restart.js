@@ -61,7 +61,7 @@ export class Restart extends plugin {
     try {
       await redis.set(this.key, data, { EX: 120 })
 
-      let npm = process.env._.includes('pnpm') ? 'pnpm' : 'npm'
+      let npm = process.env?._?.includes('pnpm') ? 'pnpm' : 'npm'
       let cm = `${npm} start`
       if (process.argv[1].includes('pm2')) {
         cm = `${npm} run restart`
@@ -100,7 +100,7 @@ export class Restart extends plugin {
     logger.mark('关机成功，已停止运行')
     await this.e.reply('关机成功，已停止运行')
 
-    let npm = process.env._.includes('pnpm') ? 'pnpm' : 'npm'
+    let npm = process.env?._?.includes('pnpm') ? 'pnpm' : 'npm'
     exec(`${npm} stop`, { windowsHide: true }, (error, stdout, stderr) => {
       if (error) {
         this.e.reply(`操作失败！\n${error.stack}`)
