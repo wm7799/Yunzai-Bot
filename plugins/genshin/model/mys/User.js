@@ -163,7 +163,6 @@ export default class User extends BaseModel {
     // 刷新MysUser缓存
     if (needRefreshCache) {
       let ckUser = await MysUser.create(ltuid)
-      console.log('refresh cache', ltuid, ckUser)
       if (ckUser) {
         await ckUser.del(this)
       }

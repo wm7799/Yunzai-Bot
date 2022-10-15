@@ -41,7 +41,6 @@ export default class MysUser extends BaseModel {
     if (!ltuid) {
       return false
     }
-    console.log('[ltuid]', ltuid)
     // 检查实例缓存
     let self = this._getThis('mys', ltuid)
     if (!self) {
@@ -75,7 +74,6 @@ export default class MysUser extends BaseModel {
     let testRet = /ltuid=(\w{0,9})/g.exec(data)
     if (testRet && testRet[1]) {
       let ltuid = testRet[1]
-      console.log(ltuid, data, /ltuid=(\w{0,9})/g.exec(data))
       // 尝试使用ltuid创建
       let ckUser = await MysUser.create(ltuid)
       if (ckUser) {
@@ -182,11 +180,11 @@ export default class MysUser extends BaseModel {
         }
       }
     }
-
     await this.cache.exTable(tables.detail, true)
+    await this.sysCache.exTable(tables.uid, true)
     await this.sysCache.exTable(tables.ck)
-    await this.sysCache.exTable(tables.uid)
     await this.sysCache.exTable(tables.qq)
+    return true
   }
 
   async disable () {

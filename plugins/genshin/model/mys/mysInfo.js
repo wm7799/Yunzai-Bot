@@ -255,21 +255,19 @@ export default class MysInfo {
   /** 初始化用户CK */
   static async initUserCk () {
     // 初始化用户缓存
-    let sysConf = GsCfg.getConfig('mys', 'set')
     let userCount = 0
     let res = await GsCfg.getBingCk()
     for (let qq in res.ckQQ) {
       let ck = res.ckQQ[qq]
       // todo: 待使用已有ck
       if (ck.uid && ck.ltuid) {
-        console.log(qq, ck.uid, ck.ltuid)
         let data = {}
         data[ck.uid] = ck
         let user = await User.create(qq, data)
         userCount += await user.initCache(true)
       }
     }
-    logger.mark(`加载用户UID：${userCount}个，${sysConf.allowUseCookie ? '加入查询池' : '未加入查询池'}`)
+    logger.mark(`加载用户UID：${userCount}个，加入查询池`)
   }
 
   /** 初始化缓存 **/
