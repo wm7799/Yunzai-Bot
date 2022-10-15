@@ -53,7 +53,7 @@ class GsCfg {
 
     try {
       this[type][key] = YAML.parse(
-        fs.readFileSync(file, 'utf8')
+          fs.readFileSync(file, 'utf8')
       )
     } catch (error) {
       logger.error(`[${app}][${name}] 格式错误 ${error}`)
@@ -234,7 +234,7 @@ class GsCfg {
 
   /** 公共配置ck文件修改hook */
   async change_myspubCk () {
-    await new MysInfo().addPubCk()
+    await MysInfo.initPubCk()
   }
 
   getGachaSet (groupId = '') {

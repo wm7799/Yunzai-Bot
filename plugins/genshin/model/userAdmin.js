@@ -5,8 +5,9 @@ import lodash from 'lodash'
 import fetch from 'node-fetch'
 import fs from 'node:fs'
 import common from '../../../lib/common/common.js'
+import UserModel from './mys/User.js'
 
-export default class User extends base {
+export default class UserAdmin extends base {
   constructor (e) {
     super(e)
     this.model = 'bingCk'
@@ -17,12 +18,19 @@ export default class User extends base {
     this.allUid = []
   }
 
+  // 获取当前user实例
+  async user () {
+    return await UserModel.create(this.e)
+  }
+
   async resetCk () {
-    await new MysInfo(this.e).resetCk()
+    let user = await this.user()
+    await user.initCache()
   }
 
   /** 绑定ck */
   async bing () {
+    let user = await this.user()
     let set = gsCfg.getConfig('mys', 'set')
 
     if (!this.e.ck) {
@@ -58,7 +66,7 @@ export default class User extends base {
 
     logger.mark(`${this.e.logFnc} 检查cookie正常 [uid:${this.uid}]`)
 
-    await this.saveCk()
+    await user.addCk(this.getCk())
 
     logger.mark(`${this.e.logFnc} 保存cookie成功 [uid:${this.uid}] [ltuid:${this.ltuid}]`)
 
@@ -148,7 +156,7 @@ export default class User extends base {
   }
 
   /** 保存ck */
-  async saveCk () {
+  getCk () {
     let ck = gsCfg.getBingCkSingle(this.e.user_id)
 
     lodash.map(ck, o => {
@@ -176,16 +184,14 @@ export default class User extends base {
         device_id: this.getGuid(),
         isMain: false
       }
-      new MysInfo(this.e).addBingCk(ck[v.uid])
     })
-
-    gsCfg.saveBingCk(this.e.user_id, ck)
-
-    await new MysInfo(this.e).addBingCk(ck[this.uid])
+    return ck
   }
 
   /** 删除绑定ck */
   async del (uid = '') {
+    let user = await this.user()
+    await user.delCk()
     let ck = gsCfg.getBingCkSingle(this.e.user_id)
     if (lodash.isEmpty(ck)) {
       return '请先绑定cookie'
@@ -231,76 +237,46 @@ export default class User extends base {
     return `绑定cookie已删除,uid:${delCk.uid}`
   }
 
-  /** 绑定uid */
+  /** 绑定uid，若有ck的话优先使用ck-uid */
   async bingUid () {
     let uid = this.e.msg.match(/[1|2|5-9][0-9]{8}/g)
     if (!uid) return
-
     uid = uid[0]
-
     await redis.setEx(this.uidKey, 3600 * 24 * 30, String(uid))
-
     return await this.e.reply(`绑定成功uid:${uid}`, false, { at: true })
   }
 
   /** #uid */
   async showUid () {
-    let ck = gsCfg.getBingCkSingle(this.e.user_id)
-    let redisUid = await redis.get(this.uidKey)
+    let user = await this.user()
 
-    if (lodash.isEmpty(ck)) {
-      await this.e.reply(`当前绑定uid：${redisUid || '无'}`, false, { at: true })
+    if (!user.hasCk) {
+      await this.e.reply(`当前绑定uid：${user.uid || '无'}`, false, { at: true })
       return
     }
-
-    let uids = lodash.map(ck, 'uid')
-    let msg = []
-
-    let isCkUid = false
+    let uids = user.ckUids
+    let uid = user.uid * 1
+    let msg = [`当前uid：${uid}`, '当前绑定cookie Uid列表', '通过【#uid+序号】来切换uid']
     for (let i in uids) {
-      let tmp = `${Number(i) + 1}、${uids[i]}`
-      if (ck[uids[i]].isMain && redisUid == uids[i]) {
+      let tmp = `${Number(i) + 1}: ${uids[i]}`
+      if (uids[i] * 1 === uid) {
         tmp += ' [√]'
-        isCkUid = true
       }
       msg.push(tmp)
     }
-
-    msg = '当前绑定cookie Uid列表\n通过【#uid+序号】来切换uid\n' + msg.join('\n')
-
-    if (!isCkUid && redisUid) {
-      msg = `当前uid：${redisUid}\n` + msg
-    }
-
-    await this.e.reply(msg)
+    await this.e.reply(msg.join('\n'))
   }
 
   /** 切换uid */
   async toggleUid (index) {
-    let ck = gsCfg.getBingCkSingle(this.e.user_id)
-
-    let uids = lodash.map(ck, 'uid')
-
-    if (index > uids.length) {
+    let user = await this.user()
+    let uidList = user.ckUids
+    if (index > uidList.length) {
       return await this.e.reply('uid序号输入错误')
     }
-
     index = Number(index) - 1
-    let uid = uids[index]
-    lodash.map(ck, o => {
-      o.isMain = false
-      if (o.uid == uid) o.isMain = true
-      return o
-    })
-
-    await redis.setEx(this.uidKey, 3600 * 24 * 30, String(uid))
-
-    gsCfg.saveBingCk(this.e.user_id, ck)
-
-    /** 切换成主ck */
-    MysInfo.toggleUid(this.e.user_id, ck[uid])
-
-    return await this.e.reply(`切换成功，当前uid：${uid}`)
+    await user.setMainUid(index)
+    return await this.e.reply(`切换成功，当前uid：${user.uid}`)
   }
 
   /** 加载旧ck */
@@ -359,12 +335,11 @@ export default class User extends base {
   }
 
   async myCk () {
-    let ck = gsCfg.getBingCkSingle(this.e.user_id)
-    if (lodash.isEmpty(ck)) {
+    let user = await this.user()
+    if (!user.hasCk) {
       this.e.reply('当前尚未绑定cookie')
     }
-
-    ck = lodash.find(ck, (v) => { return v.isMain })
+    let ck = user.mainCk
 
     if (!lodash.isEmpty(ck)) {
       await this.e.reply(`当前绑定cookie\nuid：${ck.uid}`)
