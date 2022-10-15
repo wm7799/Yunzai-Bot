@@ -147,11 +147,13 @@ export default class User extends BaseModel {
     if (!ltuid) {
       ltuid = this.mainCk.ltuid
     }
+    let ret = []
     ltuid = ltuid * 1
     let ckData = this.ckData
     for (let uid in ckData) {
       let ck = ckData[uid]
       if (ltuid && ck.ltuid * 1 === ltuid) {
+        ret.push(uid)
         delete ckData[uid]
       }
     }
@@ -161,10 +163,12 @@ export default class User extends BaseModel {
     // 刷新MysUser缓存
     if (needRefreshCache) {
       let ckUser = await MysUser.create(ltuid)
+      console.log('refresh cache', ltuid, ckUser)
       if (ckUser) {
-        await ckUser.del()
+        await ckUser.del(this)
       }
     }
+    return ret
   }
 
   // 内部方法：读取CK数据

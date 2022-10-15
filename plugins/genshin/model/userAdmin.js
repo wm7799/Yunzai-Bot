@@ -1,5 +1,4 @@
 import base from './base.js'
-import MysInfo from './mys/mysInfo.js'
 import gsCfg from './gsCfg.js'
 import lodash from 'lodash'
 import fetch from 'node-fetch'
@@ -189,52 +188,10 @@ export default class UserAdmin extends base {
   }
 
   /** 删除绑定ck */
-  async del (uid = '') {
+  async delCk (uid = '') {
     let user = await this.user()
-    await user.delCk()
-    let ck = gsCfg.getBingCkSingle(this.e.user_id)
-    if (lodash.isEmpty(ck)) {
-      return '请先绑定cookie'
-    }
-
-    let delCk = {}
-    if (uid) {
-      delCk = ck[uid]
-      delete ck[uid]
-    } else {
-      for (let i in ck) {
-        if (ck[i].isMain) {
-          delCk = ck[i]
-          delete ck[i]
-        }
-      }
-    }
-
-    /** 删除多角色ck */
-    let delLtuid = delCk.ltuid
-    for (let i in ck) {
-      if (ck[i].ltuid == delLtuid) {
-        await new MysInfo(this.e).delBingCk(ck[i])
-        delete ck[i]
-      }
-    }
-
-    /** 将下一个ck设为主ck */
-    if (lodash.size(ck) >= 1) {
-      for (let i in ck) {
-        if (!ck[i].isMain) {
-          ck[i].isMain = true
-          break
-        }
-      }
-    }
-    gsCfg.saveBingCk(this.e.user_id, ck)
-
-    if (!lodash.isEmpty(delCk)) {
-      await new MysInfo(this.e).delBingCk(delCk)
-    }
-
-    return `绑定cookie已删除,uid:${delCk.uid}`
+    let uids = await user.delCk()
+    return `绑定cookie已删除,uid:${uids.join(',')}`
   }
 
   /** 绑定uid，若有ck的话优先使用ck-uid */
@@ -242,7 +199,8 @@ export default class UserAdmin extends base {
     let uid = this.e.msg.match(/[1|2|5-9][0-9]{8}/g)
     if (!uid) return
     uid = uid[0]
-    await redis.setEx(this.uidKey, 3600 * 24 * 30, String(uid))
+    let user = await this.user()
+    await user.setRegUid(uid, true)
     return await this.e.reply(`绑定成功uid:${uid}`, false, { at: true })
   }
 
@@ -334,6 +292,7 @@ export default class UserAdmin extends base {
     fs.unlinkSync(json)
   }
 
+  /** 我的ck */
   async myCk () {
     let user = await this.user()
     if (!user.hasCk) {

@@ -1,19 +1,9 @@
 import MysApi from './mysApi.js'
 import GsCfg from '../gsCfg.js'
 import lodash from 'lodash'
-import moment from 'moment'
 import User from './User.js'
 import MysUser from './MysUser.js'
 import DailyCache from './DailyCache.js'
-
-/** 公共ck */
-let pubCk = {}
-/** 绑定ck */
-let bingCkUid = {}
-let bingCkQQ = {}
-let bingCkLtuid = {}
-
-let tmpCk = {}
 
 export default class MysInfo {
   /** redis key */
@@ -135,7 +125,6 @@ export default class MysInfo {
     let user = await User.create(e)
     let selfUser = at ? await User.create(at) : user
 
-    /** at用户 */
     if (!selfUser.hasCk) {
       if (e.noTips !== true) e.reply('尚未绑定cookie', false, { at: selfUser.qq })
       return false
@@ -146,6 +135,9 @@ export default class MysInfo {
 
   /** 判断绑定ck才能查询 */
   checkAuth (api) {
+    if (api === 'cookie') {
+      return true
+    }
     if (lodash.isObject(api)) {
       for (let i in api) {
         if (this.auth.includes(i)) {
@@ -222,17 +214,18 @@ export default class MysInfo {
     }
 
     if (!this.ckInfo.ck) {
-      // 待完善
+      // TODO: 待完善文案
       this.e.reply('暂无可用CK..')
     }
 
     this.e.noTips = true
   }
 
-  async getCookie () {
+  /* 获取请求所需ck */
+  async getCookie (onlySelfCk = false) {
     if (this.ckInfo.ck) return this.ckInfo.ck
 
-    let mysUser = await MysUser.getByQueryUid(this.uid)
+    let mysUser = await MysUser.getByQueryUid(this.uid, onlySelfCk)
 
     if (mysUser) {
       this.ckInfo = mysUser.ckData
@@ -296,15 +289,6 @@ export default class MysInfo {
     return true
   }
 
-  async initBingCk () {
-    if (!lodash.isEmpty(bingCkUid)) return
-
-    let res = await GsCfg.getBingCk()
-    bingCkUid = res.ck
-    bingCkQQ = res.ckQQ
-    bingCkLtuid = lodash.keyBy(bingCkUid, 'ltuid')
-  }
-
   async checkCode (res, type) {
     if (!res) {
       this.e.reply('米游社接口请求失败，暂时无法查询')
@@ -328,14 +312,9 @@ export default class MysInfo {
         if (/(登录|login)/i.test(res.message)) {
           if (this.ckInfo.uid) {
             logger.mark(`[ck失效][uid:${this.uid}][qq:${this.userId}]`)
-            if (this.ckInfo.type == 'public') {
-              this.e.reply('米游社查询失败，请稍后再试')
-            } else {
-              this.e.reply(`UID:${this.ckInfo.uid}，米游社cookie已失效`)
-            }
+            this.e.reply(`UID:${this.ckInfo.uid}，米游社cookie已失效`)
           } else {
             logger.mark(`[公共ck失效][ltuid:${this.ckInfo.ltuid}]`)
-            // this.e.reply(`查询失败，公共ck已失效，ltuid:${this.ckInfo.ltuid}`)
             this.e.reply('米游社查询失败，请稍后再试')
           }
           await this.delCk()
@@ -347,7 +326,7 @@ export default class MysInfo {
         this.e.reply('\n请先去米游社绑定角色', false, { at: this.userId })
         break
       case 10101:
-        this.disableToday()
+        await this.disableToday()
         this.e.reply('查询已达今日上限')
         break
       case 10102:
@@ -365,143 +344,41 @@ export default class MysInfo {
         this.e.reply(`米游社接口报错，暂时无法查询：${res.message || 'error'}`)
         break
     }
-
     if (res.retcode !== 0) {
       logger.mark(`[mys接口报错]${JSON.stringify(res)}，uid：${this.uid}`)
     }
-
+    // 添加请求记录
+    await this.ckUser.addQueryUid(this.uid)
     return res
   }
 
   /** 删除失效ck */
   async delCk () {
-    let ltuid = this.ckInfo.ltuid
-
     if (!this.ckUser) {
       return false
     }
     let ckUser = this.ckUser
-    await ckUser.del()
-
-    /** 记录公共ck失效 */
-    if (this.ckInfo.type == 'public') {
-      if (bingCkLtuid[ltuid]) {
-        this.ckInfo = bingCkLtuid[ltuid]
-        this.ckInfo.type = 'self'
-      } else {
-        logger.mark(`[删除失效ck][ltuid:${ltuid}]`)
-      }
-
-      await this.redisDel(ltuid)
-    }
-
-    if (this.ckInfo.type == 'self' || this.ckInfo.type == 'bing') {
-      /** 获取用户绑定ck */
-      let ck = GsCfg.getBingCkSingle(this.ckInfo.qq)
-      let tmp = ck[this.ckInfo.uid]
-      if (tmp) {
-        ltuid = tmp.ltuid
-
-        logger.mark(`[删除失效绑定ck][qq:${this.userId}]`)
-        /** 删除文件保存ck */
-        delete ck[this.ckInfo.uid]
-        delete pubCk[ltuid]
-        delete bingCkUid[tmp.uid]
-        delete bingCkQQ[tmp.qq]
-        /** 将下一个ck设为主ck */
-        if (tmp.isMain && lodash.size(ck) >= 1) {
-          for (let i in ck) {
-            if (!ck[i].isMain) {
-              ck[i].isMain = true
-              bingCkQQ[tmp.qq] = ck[i]
-              await redis.setEx(`${MysInfo.key.qqUid}${this.userId}`, 3600 * 24 * 30, String(ck[i].uid))
-              break
-            }
-          }
-        }
-        GsCfg.saveBingCk(this.ckInfo.qq, ck)
-
-        await this.redisDel(ltuid)
-      }
-    }
-
-    delete pubCk[ltuid]
+    // 删除记录，并清除对应user ck记录
+    await ckUser.delWithUser()
   }
 
-  async redisDel (ltuid) {
-    /** 统计次数设为超限 */
-    await redis.zRem(MysInfo.key.count, String(ltuid))
-    // await redis.setEx(`${MysInfo.key.ckNum}${ltuid}`, this.getEnd(), '99')
-
-    /** 将当前查询记录移入回收站 */
-    await this.detailDel(ltuid)
-  }
-
-  /** 将当前查询记录移入回收站 */
-  async detailDel (ltuid) {
-    let detail = await redis.zRangeByScore(MysInfo.key.detail, ltuid, ltuid)
-    if (!lodash.isEmpty(detail)) {
-      let delDetail = []
-      detail.forEach((v) => {
-        delDetail.push({ score: ltuid, value: String(v) })
-      })
-      await redis.zAdd(MysInfo.key.delDetail, delDetail)
-      this.expire(MysInfo.key.delDetail)
-    }
-    /** 删除当前ck查询记录 */
-    await redis.zRemRangeByScore(MysInfo.key.detail, ltuid, ltuid)
-  }
-
+  /** 查询次数满，今日内标记失效 */
   async disableToday () {
     /** 统计次数设为超限 */
-    await redis.zAdd(MysInfo.key.count, { score: 99, value: String(this.ckInfo.ltuid) })
-    await redis.setEx(`${MysInfo.key.ckNum}${this.ckInfo.ltuid}`, this.getEnd(), '99')
-  }
-
-  async expire (key) {
-    return await redis.expire(key, this.getEnd())
-  }
-
-  getEnd () {
-    let end = moment().endOf('day').format('X')
-    return end - moment().format('X')
-  }
-
-  async delBingCk (ck) {
-    delete bingCkUid[ck.uid]
-    delete bingCkQQ[ck.qq]
-    delete bingCkLtuid[ck.ltuid]
-    delete tmpCk[ck.uid]
-    this.detailDel(ck.ltuid)
-  }
-
-  async resetCk () {
-    await MysInfo.initCache(true)
-  }
-
-  static async initCk () {
-    if (lodash.isEmpty(bingCkUid)) {
-      let mysInfo = new MysInfo()
-      await mysInfo.initBingCk()
-    }
+    await this.ckUser.disable()
   }
 
   static async getBingCkUid () {
-    await MysInfo.initCk()
-
-    return { ...bingCkUid }
+    let res = await GsCfg.getBingCk()
+    return { ...res.ck }
   }
 
-  /** 切换uid */
-  static toggleUid (qq, ck) {
-    bingCkQQ[qq] = ck
-  }
-
+  // 获取uid绑定的ck信息
   static async checkUidBing (uid) {
-    await MysInfo.initCk()
-
-    if (bingCkUid[uid]) return bingCkUid[uid]
-
+    let ckUser = MysUser.getByQueryUid(uid, true)
+    if (ckUser && ckUser.ckData) {
+      return ckUser.ckData
+    }
     return false
   }
 }

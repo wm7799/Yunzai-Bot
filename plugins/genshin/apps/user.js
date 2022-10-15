@@ -123,7 +123,7 @@ export class user extends plugin {
 
   /** 删除ck */
   async delCk () {
-    let msg = await this.User.del()
+    let msg = await this.User.delCk()
     await this.reply(msg)
   }
 
