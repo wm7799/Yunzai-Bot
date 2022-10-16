@@ -162,7 +162,10 @@ export default class MysUser extends BaseModel {
     // 缓存qq，用于删除ltuid时查找
     if (user && user.qq) {
       let qq = user.qq === 'pub' ? 'pub' : user.qq * 1
-      let qqArr = await this.sysCache.kGet(tables.qq, this.ltuid, true) || []
+      let qqArr = await this.sysCache.kGet(tables.qq, this.ltuid, true)
+      if (!lodash.isArray(qqArr)) {
+        qqArr = []
+      }
       if (!qqArr.includes(qq)) {
         qqArr.push(qq)
         await this.sysCache.kSet(tables.qq, this.ltuid, qqArr)

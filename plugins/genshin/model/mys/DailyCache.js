@@ -82,7 +82,11 @@ export default class DailyCache extends BaseModel {
     key = '' + key
     let ret = await redis.hGet(this.getTableKey(table), key)
     if (ret && decode) {
-      ret = JSON.parse(ret)
+      ret = false
+      try {
+        ret = JSON.parse(ret)
+      } catch (e) {
+      }
     }
     return ret
   }

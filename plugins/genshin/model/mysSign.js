@@ -81,7 +81,10 @@ export default class MysSign extends base {
 
     if (signInfo.retcode == -100 && signInfo.message == '尚未登录') {
       logger.error(`[原神签到失败]${this.log} 绑定cookie已失效`)
-      await new UserAdmin(this.e).del(ck.uid)
+      let userAdmin = new UserAdmin(this.e)
+      if (userAdmin) {
+        await userAdmin.delCk(ck.uid)
+      }
       return {
         retcode: -100,
         msg: `签到失败，uid:${ck.uid}，绑定cookie已失效`,
@@ -230,7 +233,9 @@ export default class MysSign extends base {
     this.isTask = true
 
     let cks = (await gsCfg.getBingCk()).ck
-    let uids = lodash.filter(cks, (o) => { return o.autoSign !== false })
+    let uids = lodash.filter(cks, (o) => {
+      return o.autoSign !== false
+    })
     uids = lodash.map(uids, 'uid')
 
     if (uids.length <= 0) {
