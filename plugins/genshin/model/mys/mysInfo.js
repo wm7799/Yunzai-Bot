@@ -273,8 +273,8 @@ export default class MysInfo {
   /** 初始化缓存 **/
   static async initCache (force = false) {
     // 检查缓存标记
-    let sysCache = DailyCache.create('sys')
-    if (!force && await sysCache.get('cache-status')) {
+    let cache = DailyCache.create()
+    if (!force && await cache.get('cache-status')) {
       return true
     }
 
@@ -283,7 +283,7 @@ export default class MysInfo {
     // 初始化公共ck
     await MysInfo.initPubCk()
 
-    await sysCache.set('cache-status', new Date() * 1)
+    await cache.set('cache-status', new Date() * 1)
     return true
   }
 
@@ -373,7 +373,7 @@ export default class MysInfo {
 
   // 获取uid绑定的ck信息
   static async checkUidBing (uid) {
-    let ckUser = MysUser.getByQueryUid(uid, true)
+    let ckUser = await MysUser.getByQueryUid(uid, true)
     if (ckUser && ckUser.ckData) {
       return ckUser.ckData
     }

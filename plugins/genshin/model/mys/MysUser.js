@@ -47,9 +47,9 @@ export default class MysUser extends BaseModel {
       self = this
     }
     // 单日有效缓存，使用uid区分不同服务器
-    self.cache = self.cache || DailyCache.create(data.uid || 'mys')
+    self.servCache = self.servCache || DailyCache.create(data.uid || 'mys')
     // 单日有效缓存，不区分服务器
-    self.sysCache = self.sysCache || DailyCache.create('sys')
+    self.cache = self.cache || DailyCache.create()
     self.uids = self.uids || {}
     self.ltuid = data.ltuid
     self.ck = self.ck || data.ck
@@ -88,8 +88,8 @@ export default class MysUser extends BaseModel {
     // 传入ltuid
     if (/\d{4,9}/.test(data)) {
       // 查找ck记录
-      let sysCache = DailyCache.create('sys')
-      let ckData = await sysCache.kGet(tables.ck, data, true)
+      let cache = DailyCache.create()
+      let ckData = await cache.kGet(tables.ck, data, true)
       if (ckData && ckData.ltuid) {
         return new MysUser(ckData)
       }
@@ -98,15 +98,15 @@ export default class MysUser extends BaseModel {
   }
 
   static async getByQueryUid (uid, onlySelfCk = false) {
-    let sysCache = DailyCache.create('sys')
-    let cache = DailyCache.create(uid)
+    let cache = DailyCache.create()
+    let servCache = DailyCache.create(uid)
     // 查找已经查询过的ltuid || 分配最少查询的ltuid
 
     // 根据ltuid获取mysUser 封装
     const create = async function (ltuid) {
       if (!ltuid) return false
 
-      let ckData = await sysCache.kGet(tables.ck, ltuid, true)
+      let ckData = await cache.kGet(tables.ck, ltuid, true)
       if (!ckData || !ckData.ltuid) return false
 
       let ckUser = await MysUser.create(ckData)
@@ -119,7 +119,7 @@ export default class MysUser extends BaseModel {
     }
 
     // 根据uid检索已查询记录。包括公共CK/自己CK/已查询过
-    let ret = await create(await cache.zKey(tables.detail, uid))
+    let ret = await create(await servCache.zKey(tables.detail, uid))
     if (ret) {
       logger.mark(`[米游社查询][uid：${uid}]${logger.green(`[使用已查询ck：${ret.ltuid}]`)}`)
       return ret
@@ -129,7 +129,7 @@ export default class MysUser extends BaseModel {
     if (onlySelfCk) return false
 
     // 使用CK池内容，分配次数最少的一个ltuid
-    ret = await create(await cache.zMinKey(tables.detail))
+    ret = await create(await servCache.zMinKey(tables.detail))
     if (ret) {
       logger.mark(`[米游社查询][uid：${uid}]${logger.green(`[分配查询ck：${ret.ltuid}]`)}`)
       return ret
@@ -140,7 +140,7 @@ export default class MysUser extends BaseModel {
 
   // 初始化当前MysUser缓存记录
   async initCache (user) {
-    if (!this.ltuid || !this.cache) {
+    if (!this.ltuid || !this.servCache) {
       return
     }
 
@@ -149,31 +149,31 @@ export default class MysUser extends BaseModel {
       for (let uid in this.uids) {
         await this.addQueryUid(uid)
         // 添加ltuid-uid记录，用于判定ltuid绑定个数及自ltuid查询
-        await this.sysCache.zAdd(tables.uid, this.ltuid, uid)
+        await this.cache.zAdd(tables.uid, this.ltuid, uid)
       }
     } else {
       // TODO:为了兼容没有UID的情况，使用ltuid插入，待完善
       await this.addQueryUid(this.ltuid)
     }
     // 缓存ckData，供后续缓存使用
-    // ltuid关系存储到与server无关的sysCache中，方便后续检索
-    await this.sysCache.kSet(tables.ck, this.ltuid, this.ckData)
+    // ltuid关系存储到与server无关的cache中，方便后续检索
+    await this.cache.kSet(tables.ck, this.ltuid, this.ckData)
 
     // 缓存qq，用于删除ltuid时查找
     if (user && user.qq) {
       let qq = user.qq === 'pub' ? 'pub' : user.qq * 1
-      let qqArr = await this.sysCache.kGet(tables.qq, this.ltuid, true)
+      let qqArr = await this.cache.kGet(tables.qq, this.ltuid, true)
       if (!lodash.isArray(qqArr)) {
         qqArr = []
       }
       if (!qqArr.includes(qq)) {
         qqArr.push(qq)
-        await this.sysCache.kSet(tables.qq, this.ltuid, qqArr)
+        await this.cache.kSet(tables.qq, this.ltuid, qqArr)
       }
     }
 
     // 从删除记录中查找并恢复查询记录
-    let cacheSearchList = await this.cache.get(tables.del, this.ltuid, true)
+    let cacheSearchList = await this.servCache.get(tables.del, this.ltuid, true)
     // 这里不直接插入，只插入当前查询记录中没有的值
     if (cacheSearchList && cacheSearchList.length > 0) {
       for (let searchedUid of cacheSearchList) {
@@ -183,15 +183,15 @@ export default class MysUser extends BaseModel {
         }
       }
     }
-    await this.cache.exTable(tables.detail, true)
-    await this.sysCache.exTable(tables.uid, true)
-    await this.sysCache.exTable(tables.ck)
-    await this.sysCache.exTable(tables.qq)
+    await this.servCache.exTable(tables.detail, true)
+    await this.cache.exTable(tables.uid, true)
+    await this.cache.exTable(tables.ck)
+    await this.cache.exTable(tables.qq)
     return true
   }
 
   async disable () {
-    await this.cache.zDel(tables.detail, this.ltuid)
+    await this.servCache.zDel(tables.detail, this.ltuid)
     logger.mark(`[标记无效ck][ltuid:${this.ltuid}]`)
   }
 
@@ -199,9 +199,9 @@ export default class MysUser extends BaseModel {
   // 供User解绑CK时调用
   async del (user) {
     if (user && user.qq) {
-      let qqList = await this.sysCache.kGet(tables.qq, this.ltuid, true)
+      let qqList = await this.cache.kGet(tables.qq, this.ltuid, true)
       let newList = lodash.pull(qqList, user.qq * 1)
-      await this.sysCache.kSet(tables.qq, this.ltuid, newList)
+      await this.cache.kSet(tables.qq, this.ltuid, newList)
       if (newList.length > 0) {
         // 如果数组还有其他元素，说明该ltuid还有其他绑定，不进行缓存删除
         return false
@@ -209,18 +209,18 @@ export default class MysUser extends BaseModel {
     }
     // 将查询过的uid缓存起来，以备后续重新绑定时恢复
     let uids = await this.getQueryUids()
-    await this.cache.set(tables.del, uids)
+    await this.servCache.set(tables.del, uids)
 
     // 标记ltuid为失效
     // 其余缓存无需清除，可忽略
-    await this.cache.zDel(tables.detail, this.ltuid)
+    await this.servCache.zDel(tables.detail, this.ltuid)
     logger.mark(`[删除失效ck][ltuid:${this.ltuid}]`)
   }
 
   // 删除MysUser用户记录，会反向删除User中的记录及绑定关系
   async delWithUser () {
     // 查找用户
-    let qqArr = await this.sysCache.kGet(tables.qq, this.ltuid, true)
+    let qqArr = await this.cache.kGet(tables.qq, this.ltuid, true)
     if (qqArr && qqArr.length > 0) {
       for (let qq of qqArr) {
         let user = await User.create(qq)
@@ -238,23 +238,23 @@ export default class MysUser extends BaseModel {
   // 为当前用户添加uid查询记录
   async addQueryUid (uid) {
     if (uid) {
-      await this.cache.zAdd(tables.detail, this.ltuid, uid)
+      await this.servCache.zAdd(tables.detail, this.ltuid, uid)
     }
   }
 
   // 获取当前用户已查询uid列表
   async getQueryUids () {
-    return await this.cache.zList(tables.detail, this.ltuid)
+    return await this.servCache.zList(tables.detail, this.ltuid)
   }
 
   // 根据uid获取查询ltuid
   async getQueryLtuid (uid) {
-    return await this.cache.zKey(tables.detail, uid)
+    return await this.servCache.zKey(tables.detail, uid)
   }
 
   // 检查指定uid是否为当前MysUser所有
   async ownUid (uid) {
-    let uidArr = this.sysCache.kGet(tables.uid, this.ltuid, true)
+    let uidArr = await this.cache.zList(tables.uid, this.ltuid) || []
     return uidArr.includes(uid)
   }
 }

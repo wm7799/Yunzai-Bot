@@ -19,7 +19,6 @@ export default class DailyCache extends BaseModel {
 
   // 传入UID或server标示，返回当日存储对象
   static create (uid) {
-    if (!uid) return false
     return new DailyCache(uid)
   }
 
@@ -41,10 +40,11 @@ export default class DailyCache extends BaseModel {
 
   // 获取server key
   static getServKey (uid) {
-    // 判断是mys还是hoyolab
-    if (uid === 'sys') {
-      return 'sys'
+    // 不传入uid为默认cache
+    if (!uid || uid === 'cache') {
+      return 'cache'
     }
+    // 传入uid或sever key，判断是mys还是hoyolab
     return /^[6-9]|^hoyo|^os/i.test(uid) ? servs[1] : servs[0]
   }
 
@@ -79,26 +79,14 @@ export default class DailyCache extends BaseModel {
    * **/
   // 获取指定key内容，decode = true会进行decode
   async kGet (table, key, decode = false) {
-    key = '' + key
-    let ret = await redis.hGet(this.getTableKey(table), key)
-    if (ret && decode) {
-      try {
-        ret = JSON.parse(ret)
-      } catch (e) {
-        ret = false
-      }
-    }
-    return ret
+    let value = await redis.hGet(this.getTableKey(table), '' + key)
+    return DailyCache.decodeValue(value, decode)
   }
 
   // 设置指定key内容，若value为数组或对象会自动encode
   async kSet (table, key, value) {
-    if (typeof (value) === 'object') {
-      value = JSON.stringify(value)
-    } else {
-      value = '' + value
-    }
-    return await redis.hSet(this.getTableKey(table), key, value)
+    value = DailyCache.encodeValue(value)
+    return await redis.hSet(this.getTableKey(table), '' + key, value)
   }
 
   async kDel (table, key) {
@@ -108,22 +96,35 @@ export default class DailyCache extends BaseModel {
   // 获取指定key内容，decode = true会进行decode
   async get (table, decode = false) {
     const tableKey = this.getTableKey(table)
-    let ret = await redis.get(tableKey)
-    if (ret && decode) {
-      ret = JSON.parse(ret)
-    }
-    return ret
+    let value = await redis.get(tableKey)
+    return DailyCache.decodeValue(value, decode)
   }
 
   // 设置指定key内容，若value为数组或对象会自动encode
   async set (table, value) {
-    if (typeof (value) === 'object') {
-      value = JSON.stringify(value)
-    } else {
-      value = '' + value
+    value = DailyCache.encodeValue(value)
+    return await redis.set(this.getTableKey(table), value, { EX })
+  }
+
+  static decodeValue (value, decode = false) {
+    if (value && decode) {
+      try {
+        return JSON.parse(value)
+      } catch (e) {
+        return false
+      }
     }
-    const tableKey = this.getTableKey(table)
-    return await redis.set(tableKey, value, { EX })
+    return value
+  }
+
+  static encodeValue (value) {
+    if (typeof (value) === 'object') {
+      return JSON.stringify(value) || ''
+    }
+    if (typeof (value) === 'undefined') {
+      return ''
+    }
+    return '' + value
   }
 
   async del (table) {
