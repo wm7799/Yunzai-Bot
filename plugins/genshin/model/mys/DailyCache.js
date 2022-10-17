@@ -187,4 +187,9 @@ export default class DailyCache extends BaseModel {
     await redis.zRemRangeByScore(this.getTableKey(table), key, key)
     await this.zDisableKey(table, key)
   }
+
+  async zStat (table) {
+    const countKey = this.getTableKey(table, 'count')
+    return await redis.zRangeByScoreWithScores(countKey, 0, 100)
+  }
 }

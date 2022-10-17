@@ -5,6 +5,8 @@ import fetch from 'node-fetch'
 import fs from 'node:fs'
 import common from '../../../lib/common/common.js'
 import UserModel from './mys/User.js'
+import MysUser from './mys/MysUser.js'
+import MysInfo from './mys/mysInfo.js'
 
 export default class UserAdmin extends base {
   constructor (e) {
@@ -312,5 +314,22 @@ export default class UserAdmin extends base {
     }
 
     return (S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4())
+  }
+
+  async userAdmin () {
+    this.model = 'userAdmin'
+    await MysInfo.initCache()
+    let stat = await MysUser.getStatData()
+    return {
+      saveId: 'user-admin',
+      ...stat,
+      _plugin: 'genshin',
+      ...this.screenData
+    }
+  }
+
+  async resetCache () {
+    await MysInfo.initCache(true)
+    return true
   }
 }

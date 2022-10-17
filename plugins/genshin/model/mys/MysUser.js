@@ -35,6 +35,7 @@ const tables = {
 }
 
 export default class MysUser extends BaseModel {
+
   constructor (data) {
     super()
     let ltuid = data.ltuid
@@ -256,5 +257,41 @@ export default class MysUser extends BaseModel {
   async ownUid (uid) {
     let uidArr = await this.cache.zList(tables.uid, this.ltuid) || []
     return uidArr.includes(uid)
+  }
+
+  static async getStatData () {
+    let totalCount = {}
+    let servs = ['mys', 'hoyo']
+    let ret = { servs: {} }
+    for (let serv of servs) {
+      let servCache = DailyCache.create(serv)
+      let data = await servCache.zStat(tables.detail)
+      let count = {}
+      let list = []
+      let query = 0
+      const stat = (type, num) => {
+        count[type] = num
+        totalCount[type] = (totalCount[type] || 0) + num
+      }
+      lodash.forEach(data, (ds) => {
+        list.push({
+          ltuid: ds.value,
+          num: ds.score
+        })
+        if (ds.score < 29) {
+          query += ds.score
+        }
+      })
+      stat('total', list.length)
+      stat('normal', lodash.filter(list, ds => ds.num < 29).length)
+      stat('disable', lodash.filter(list, ds => ds.num > 30).length)
+      stat('query', query)
+      ret.servs[serv] = {
+        list, count
+      }
+    }
+    totalCount.last = totalCount.normal * 29 - totalCount.query
+    ret.count = totalCount
+    return ret
   }
 }

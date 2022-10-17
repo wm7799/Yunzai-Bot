@@ -19,12 +19,16 @@ export default class User extends BaseModel {
       return cacheObj
     }
     this.qq = qq
-    if (!this.ckData) {
-      if (data) {
-        this.ckData = data
-      } else {
-        this._getCkData()
+    if (data) {
+      this.ckData = this.ckData || {}
+      for (let uid in data) {
+        let ck = data[uid]
+        if (uid && ck.uid) {
+          this.ckData[uid] = ck
+        }
       }
+    } else if (!this.ckData) {
+      this._getCkData()
     }
     // 缓存实例
     return this._cacheThis()
