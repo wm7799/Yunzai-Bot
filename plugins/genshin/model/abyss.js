@@ -74,8 +74,8 @@ export default class Abyss extends base {
     let rankData = []
 
     for (let val of dataName) {
-      if (!data[`${val}_rank`] || data[`${val}_rank`].length <= 0) {
-        rankData[`${val}_rank`] = [
+      if (lodash.isEmpty(data[`${val}_rank`]) || data[`${val}_rank`].length <= 0) {
+        data[`${val}_rank`] = [
           {
             value: 0,
             avatar_id: 10000007

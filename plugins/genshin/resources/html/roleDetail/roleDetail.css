@@ -989,3 +989,16 @@ body {
   background-size: 100%;
   background-position: 120px 0px;
 }
+.妮露_bg1 {
+  background: url(../../../../../data/roleDetail/妮露1.png) no-repeat;
+  background-size: auto 300px;
+  background-position: 100% 0%;
+}
+.妮露_drag {
+  background-position: -110px -55px;
+}
+.妮露_bg2 {
+  background-image: url(../../../../../data/roleDetail/妮露2.png);
+  background-size: 100%;
+  background-position: 40px 0px;
+}
