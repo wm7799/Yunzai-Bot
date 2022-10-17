@@ -35,7 +35,6 @@ const tables = {
 }
 
 export default class MysUser extends BaseModel {
-
   constructor (data) {
     super()
     let ltuid = data.ltuid
@@ -215,6 +214,7 @@ export default class MysUser extends BaseModel {
     // 标记ltuid为失效
     // 其余缓存无需清除，可忽略
     await this.servCache.zDel(tables.detail, this.ltuid)
+    await this.cache.kDel(tables.ck, this.ltuid)
     logger.mark(`[删除失效ck][ltuid:${this.ltuid}]`)
   }
 
@@ -286,6 +286,7 @@ export default class MysUser extends BaseModel {
       stat('normal', lodash.filter(list, ds => ds.num < 29).length)
       stat('disable', lodash.filter(list, ds => ds.num > 30).length)
       stat('query', query)
+      list = lodash.sortBy(list, ['num', 'ltuid']).reverse()
       ret.servs[serv] = {
         list, count
       }

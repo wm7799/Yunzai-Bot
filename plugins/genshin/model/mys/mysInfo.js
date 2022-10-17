@@ -271,7 +271,7 @@ export default class MysInfo {
   }
 
   /** 初始化缓存 **/
-  static async initCache (force = false) {
+  static async initCache (force = false, clearData = false) {
     // 检查缓存标记
     let cache = DailyCache.create()
     if (!force && await cache.get('cache-status')) {

@@ -14,7 +14,7 @@ export class user extends plugin {
         reg: '^#用户统计$',
         fnc: 'userAdmin'
       }, {
-        reg: '^#重置用户(缓存|统计)$',
+        reg: '^#(刷新|重置)用户(缓存|统计)$',
         fnc: 'resetCache'
       }]
     })
@@ -57,7 +57,9 @@ export class user extends plugin {
     if (!this.checkAuth()) {
       return true
     }
-    await new UserAdmin(this.e).resetCache()
+    // 清空老数据
+    const clearData = /重置/.test(this.e.msg)
+    await new UserAdmin(this.e).resetCache(clearData)
     this.e.reply('用户缓存已重置...')
   }
 }

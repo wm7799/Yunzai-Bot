@@ -90,7 +90,7 @@ export default class DailyCache extends BaseModel {
   }
 
   async kDel (table, key) {
-
+    return await redis.hDel(this.getTableKey(table), '' + key)
   }
 
   // 获取指定key内容，decode = true会进行decode

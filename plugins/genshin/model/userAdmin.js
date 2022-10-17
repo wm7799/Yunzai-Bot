@@ -21,6 +21,7 @@ export default class UserAdmin extends base {
 
   // 获取当前user实例
   async user () {
+    await MysInfo.initCache()
     return await UserModel.create(this.e)
   }
 
@@ -328,8 +329,8 @@ export default class UserAdmin extends base {
     }
   }
 
-  async resetCache () {
-    await MysInfo.initCache(true)
+  async resetCache (clearData = false) {
+    await MysInfo.initCache(true, clearData)
     return true
   }
 }

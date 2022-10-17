@@ -96,7 +96,7 @@ export default class User extends BaseModel {
     let redisKey = `Yz:genshin:mys:qq-uid:${this.qq}`
     if (uid && /[1|2|5-9][0-9]{8}/.test(uid)) {
       uid = String(uid)
-      const oldUid = String(await this.getRegUid())
+      const oldUid = await this.getRegUid()
       // force true、不存在绑定UID，UID一致时存储并更新有效期
       if (force || !oldUid || oldUid === uid) {
         await redis.setEx(redisKey, 3600 * 24 * 30, uid)

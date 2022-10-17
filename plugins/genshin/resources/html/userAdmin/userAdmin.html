@@ -23,7 +23,9 @@
           <b>米游社</b>
           <i>可用/失效</i>
         </strong>
-        <span>{{mysCount?.total}} ({{mysCount?.normal}}/{{mysCount?.disable}})</span>
+        <span>{{mysCount?.total}}
+          <i>({{mysCount?.normal}}/{{mysCount?.disable}})</i>
+        </span>
       </li>
       {{set hoyoCount = servs?.hoyo?.count }}
       <li>
@@ -31,7 +33,9 @@
           <b>HoyoLab</b>
           <i>可用/失效</i>
         </strong>
-        <span>{{hoyoCount?.normal}} ({{hoyoCount?.normal}}/{{hoyoCount?.disable}})</span>
+        <span>{{hoyoCount?.normal}}
+          <i>({{hoyoCount?.normal}}/{{hoyoCount?.disable}})</i>
+        </span>
       </li>
     </ul>
     <div class="cookie-type yes">已使用NoteCookie</div>
@@ -40,18 +44,22 @@
   {{each servs servData servKey}}
   <div class="cont-title">{{servName[servKey]}}-CK列表 (请求次数 / CK-Ltuid)</div>
   <div class="uids">
-    {{if servData.list.length > 0 }}
-    {{each servData.list uid}}
-    <div class="uid type-{{uid.type}}">
+    {{set listLen = servData.list.length }}
+    {{if listLen > 0 }}
+    {{each servData.list uid idx}} {{if idx < 100}}
+    <div class="uid type-{{uid.num<29 ? '0':'4'}}">
       <div class="uid-inner">
         <span>{{uid.num>29 ? "×" : uid.num}}</span>
         {{uid.ltuid}}
       </div>
       <div class="uid-process" style="left:-{{ 100-uid.num/29*100 }}%"></div>
     </div>
-    {{/each}}
+    {{/if}} {{/each}}
+    {{if listLen > 100}}
+    <div class="uid uid-tips">还有{{listLen-100}}个CK记录...</div>
+    {{/if}}
     {{else}}
-    <div class="uid">暂无</div>
+    <div class="uid uid-tips">暂无</div>
     {{/if}}
   </div>
   {{/each}}
@@ -64,6 +72,7 @@
       <li>预计剩余查询次数为预计值，仅供参考</li>
     </ul>
   </div>
+  <div class="copyright">Created By YunzaiBot V3</div>
 </div>
 </body>
 </html>
