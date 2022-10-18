@@ -328,9 +328,4 @@ export default class UserAdmin extends base {
       ...this.screenData
     }
   }
-
-  async resetCache (clearData = false) {
-    await MysInfo.initCache(true, clearData)
-    return true
-  }
 }

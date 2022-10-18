@@ -1,7 +1,8 @@
 import plugin from '../../../lib/plugins/plugin.js'
 import UserAdmin from '../model/userAdmin.js'
 import puppeteer from '../../../lib/puppeteer/puppeteer.js'
-import fs from "fs";
+import fs from 'fs'
+import MysInfo from '../model/mys/mysInfo.js'
 
 export class user extends plugin {
   constructor (e) {
@@ -16,6 +17,9 @@ export class user extends plugin {
       }, {
         reg: '^#(刷新|重置)用户(缓存|统计)$',
         fnc: 'resetCache'
+      }, {
+        reg: '^#删除(无效|失效)用户$',
+        fnc: 'delDisable'
       }]
     })
     this.User = new UserAdmin(e)
@@ -59,7 +63,15 @@ export class user extends plugin {
     }
     // 清空老数据
     const clearData = /重置/.test(this.e.msg)
-    await new UserAdmin(this.e).resetCache(clearData)
+    await MysInfo.initCache(true, clearData)
     this.e.reply('用户缓存已重置...')
+  }
+
+  async delDisable () {
+    if (!this.checkAuth()) {
+      return true
+    }
+    let count = await MysInfo.delDisable()
+    this.e.reply(count > 0 ? `已删除${count}个无效用户` : '暂无无效用户...')
   }
 }

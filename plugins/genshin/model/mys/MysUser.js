@@ -50,12 +50,14 @@ export default class MysUser extends BaseModel {
     self.servCache = self.servCache || DailyCache.create(data.uid || 'mys')
     // 单日有效缓存，不区分服务器
     self.cache = self.cache || DailyCache.create()
-    self.uids = self.uids || {}
+    self.uids = self.uids || []
     self.ltuid = data.ltuid
     self.ck = self.ck || data.ck
     self.qq = self.qq || data.qq || 'pub'
     if (data.uid) {
-      self.uids[data.uid] = data.uid
+      self.addUid(data.uid)
+    }
+    if (data.ck && data.ltuid) {
       self.ckData = data
     }
     return self._cacheThis()
@@ -97,6 +99,7 @@ export default class MysUser extends BaseModel {
     return false
   }
 
+  // 根据uid获取查询MysUser
   static async getByQueryUid (uid, onlySelfCk = false) {
     let cache = DailyCache.create()
     let servCache = DailyCache.create(uid)
@@ -107,10 +110,17 @@ export default class MysUser extends BaseModel {
       if (!ltuid) return false
 
       let ckData = await cache.kGet(tables.ck, ltuid, true)
-      if (!ckData || !ckData.ltuid) return false
+      if (!ckData || !ckData.ltuid) {
+        // 有ltuid但查不到ckData，则将ltuid置为失效
+        await servCache.zDel(tables.detail, ltuid)
+        return false
+      }
 
       let ckUser = await MysUser.create(ckData)
-      if (!ckUser) return false
+      if (!ckUser) {
+        await servCache.zDel(tables.detail, ltuid)
+        return false
+      }
 
       // 若声明只获取自己ck，则判断uid是否为本人所有
       if (onlySelfCk && !await ckUser.ownUid(uid)) return false
@@ -138,9 +148,19 @@ export default class MysUser extends BaseModel {
     return false
   }
 
+  // 为当前MysUser绑定uid
+  addUid (uid) {
+    uid = '' + uid
+    if (/\d{9}/.test(uid) || uid === 'pub') {
+      if (!this.uids.includes(uid)) {
+        this.uids.push(uid)
+      }
+    }
+  }
+
   // 初始化当前MysUser缓存记录
   async initCache (user) {
-    if (!this.ltuid || !this.servCache) {
+    if (!this.ltuid || !this.servCache || !this.ck) {
       return
     }
 
@@ -157,7 +177,9 @@ export default class MysUser extends BaseModel {
     }
     // 缓存ckData，供后续缓存使用
     // ltuid关系存储到与server无关的cache中，方便后续检索
-    await this.cache.kSet(tables.ck, this.ltuid, this.ckData)
+    if (this.ckData && this.ckData.ck) {
+      await this.cache.kSet(tables.ck, this.ltuid, this.ckData)
+    }
 
     // 缓存qq，用于删除ltuid时查找
     if (user && user.qq) {
@@ -190,6 +212,25 @@ export default class MysUser extends BaseModel {
     return true
   }
 
+  static async eachServ (fn) {
+    let servs = ['mys', 'hoyo']
+    for (let serv of servs) {
+      let servCache = DailyCache.create(serv)
+      await fn(servCache, serv)
+    }
+  }
+
+  // 清除当日缓存
+  static async clearCache () {
+    await MysUser.eachServ(async function (servCache) {
+      await servCache.empty(tables.detail)
+    })
+    let cache = DailyCache.create()
+    await cache.empty(tables.uid)
+    await cache.empty(tables.ck)
+    await cache.empty(tables.qq)
+  }
+
   async disable () {
     await this.servCache.zDel(tables.detail, this.ltuid)
     logger.mark(`[标记无效ck][ltuid:${this.ltuid}]`)
@@ -212,9 +253,10 @@ export default class MysUser extends BaseModel {
     await this.servCache.set(tables.del, uids)
 
     // 标记ltuid为失效
-    // 其余缓存无需清除，可忽略
     await this.servCache.zDel(tables.detail, this.ltuid)
+    await this.cache.zDel(tables.uid, this.ltuid)
     await this.cache.kDel(tables.ck, this.ltuid)
+    await this.cache.kDel(tables.qq, this.ltuid)
     logger.mark(`[删除失效ck][ltuid:${this.ltuid}]`)
   }
 
@@ -233,7 +275,6 @@ export default class MysUser extends BaseModel {
     }
 
     await this.del()
-    // TODO: 实现删除逻辑
   }
 
   // 为当前用户添加uid查询记录
@@ -259,12 +300,11 @@ export default class MysUser extends BaseModel {
     return uidArr.includes(uid)
   }
 
+  // 获取用户统计数据
   static async getStatData () {
     let totalCount = {}
-    let servs = ['mys', 'hoyo']
     let ret = { servs: {} }
-    for (let serv of servs) {
-      let servCache = DailyCache.create(serv)
+    await MysUser.eachServ(async function (servCache, serv) {
       let data = await servCache.zStat(tables.detail)
       let count = {}
       let list = []
@@ -290,9 +330,25 @@ export default class MysUser extends BaseModel {
       ret.servs[serv] = {
         list, count
       }
-    }
+    })
     totalCount.last = totalCount.normal * 29 - totalCount.query
     ret.count = totalCount
     return ret
+  }
+
+  // 删除失效用户
+  static async delDisable () {
+    let count = 0
+    await MysUser.eachServ(async function (servCache) {
+      let cks = await servCache.zGetDisableKey(tables.detail)
+      for (let ck of cks) {
+        let ckUser = await MysUser.create(ck)
+        if (ckUser) {
+          count++
+          await ckUser.delWithUser()
+        }
+      }
+    })
+    return count
   }
 }

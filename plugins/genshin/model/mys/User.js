@@ -124,13 +124,26 @@ export default class User extends BaseModel {
   async initCache () {
     // 刷新绑定CK的缓存
     let count = 0
+    let cks = {}
     for (let uid in this.ckData) {
       let ck = this.ckData[uid]
       if (ck && ck.ltuid && ck.uid) {
-        let mysUser = await MysUser.create(ck)
-        if (mysUser && await mysUser.initCache(this)) {
-          count++
+        cks[ck.ltuid] = cks[ck.ltuid] || {
+          ckData: ck,
+          uids: []
         }
+        cks[ck.ltuid].uids.push(ck.uid)
+
+      }
+    }
+    for (let ltuid in cks) {
+      let { ckData, uids } = cks[ltuid]
+      let mysUser = await MysUser.create(ckData)
+      for (let uid of uids) {
+        mysUser.addUid(uid)
+      }
+      if (mysUser && await mysUser.initCache(this)) {
+        count++
       }
     }
     return count

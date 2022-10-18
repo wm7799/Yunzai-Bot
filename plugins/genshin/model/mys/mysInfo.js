@@ -228,8 +228,14 @@ export default class MysInfo {
     let mysUser = await MysUser.getByQueryUid(this.uid, onlySelfCk)
 
     if (mysUser) {
-      this.ckInfo = mysUser.ckData
-      this.ckUser = mysUser
+      if (mysUser.ckData?.ck) {
+        this.ckInfo = mysUser.ckData
+        this.ckUser = mysUser
+      } else {
+        // 重新分配
+        await mysUser.disable()
+        return await this.getCookie(onlySelfCk)
+      }
     }
 
     return this.ckInfo.ck
@@ -276,6 +282,10 @@ export default class MysInfo {
     let cache = DailyCache.create()
     if (!force && await cache.get('cache-status')) {
       return true
+    }
+
+    if (clearData) {
+      await MysUser.clearCache()
     }
 
     // 先初始化用户CK，减少一些公共CK中ltuid无法识别的情况
@@ -378,5 +388,9 @@ export default class MysInfo {
       return ckUser.ckData
     }
     return false
+  }
+
+  static async delDisable () {
+    return await MysUser.delDisable()
   }
 }

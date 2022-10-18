@@ -70,6 +70,12 @@ export default class DailyCache extends BaseModel {
     }
   }
 
+  // 清空表
+  async empty (table) {
+    await redis.del(this.getTableKey(table))
+    await redis.del(this.getTableKey(table, 'count'))
+  }
+
   /**
    * 【基础数据结构】：Key-Value
    *
@@ -127,10 +133,6 @@ export default class DailyCache extends BaseModel {
     return '' + value
   }
 
-  async del (table) {
-
-  }
-
   /**
    * 【基础数据结构】：Key-List
    *
@@ -174,20 +176,30 @@ export default class DailyCache extends BaseModel {
 
   // 禁用某个key
   // 清空所有查询关联，同时不再被zMinKey识别并返回
-  async zDisableKey (table, key) {
+  async zDisableKey (table, key, delCount = false) {
     // 将count标记为99次，记录并防止被后续分配
     const countKey = this.getTableKey(table, 'count')
-    await redis.zAdd(countKey, { score: 99, value: key })
+    if (delCount) {
+      await redis.zRem(countKey, key)
+    } else {
+      await redis.zAdd(countKey, { score: 99, value: key })
+    }
+  }
+
+  // 获取删除的key列表
+  async zGetDisableKey (table) {
+    return await redis.zRangeByScore(this.getTableKey(table, 'count'), 99, 99)
   }
 
   // 删除某个key
   // 清空所有查询关联，同时不再被zMinKey识别并返回
-  async zDel (table, key) {
+  async zDel (table, key, delCount = false) {
     // 删除key对应list所有记录
     await redis.zRemRangeByScore(this.getTableKey(table), key, key)
-    await this.zDisableKey(table, key)
+    await this.zDisableKey(table, key, delCount)
   }
 
+  // 统计
   async zStat (table) {
     const countKey = this.getTableKey(table, 'count')
     return await redis.zRangeByScoreWithScores(countKey, 0, 100)
