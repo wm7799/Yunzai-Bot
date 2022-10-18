@@ -195,8 +195,10 @@ export default class DailyCache extends BaseModel {
   // 清空所有查询关联，同时不再被zMinKey识别并返回
   async zDel (table, key, delCount = false) {
     // 删除key对应list所有记录
+    let check = redis.zScore(this.getTableKey(table, 'count'), key)
     await redis.zRemRangeByScore(this.getTableKey(table), key, key)
     await this.zDisableKey(table, key, delCount)
+    return !!check
   }
 
   // 统计

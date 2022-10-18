@@ -226,7 +226,6 @@ export default class MysInfo {
     if (this.ckInfo.ck) return this.ckInfo.ck
 
     let mysUser = await MysUser.getByQueryUid(this.uid, onlySelfCk)
-
     if (mysUser) {
       if (mysUser.ckData?.ck) {
         this.ckInfo = mysUser.ckData
@@ -237,7 +236,6 @@ export default class MysInfo {
         return await this.getCookie(onlySelfCk)
       }
     }
-
     return this.ckInfo.ck
   }
 

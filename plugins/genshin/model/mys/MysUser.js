@@ -166,7 +166,7 @@ export default class MysUser extends BaseModel {
 
     // 为当前MysUser添加uid查询记录
     if (!lodash.isEmpty(this.uids)) {
-      for (let uid in this.uids) {
+      for (let uid of this.uids) {
         await this.addQueryUid(uid)
         // 添加ltuid-uid记录，用于判定ltuid绑定个数及自ltuid查询
         await this.cache.zAdd(tables.uid, this.ltuid, uid)
@@ -273,7 +273,6 @@ export default class MysUser extends BaseModel {
         }
       }
     }
-
     await this.del()
   }
 
@@ -341,10 +340,14 @@ export default class MysUser extends BaseModel {
     let count = 0
     await MysUser.eachServ(async function (servCache) {
       let cks = await servCache.zGetDisableKey(tables.detail)
+      console.log('cks', cks)
       for (let ck of cks) {
-        let ckUser = await MysUser.create(ck)
-        if (ckUser) {
+        if (await servCache.zDel(tables.detail, ck, true)) {
           count++
+        }
+        let ckUser = await MysUser.create(ck)
+        console.log('ckUser', ck, ckUser)
+        if (ckUser) {
           await ckUser.delWithUser()
         }
       }
