@@ -3,6 +3,10 @@ import MysInfo from './mys/mysInfo.js'
 import gsCfg from './gsCfg.js'
 import lodash from 'lodash'
 import moment from 'moment'
+import fs from 'node:fs'
+
+let imgFile = {}
+
 export default class RoleIndex extends base {
   constructor (e) {
     super(e)
@@ -296,6 +300,8 @@ export default class RoleIndex extends base {
   }
 
   roleCardData (res) {
+    this.initFile()
+
     let stats = res.stats
     let line = [
       [
@@ -360,6 +366,7 @@ export default class RoleIndex extends base {
         avatars[i].name = '荧'
       }
       avatars[i].element = element[avatars[i].name]
+      avatars[i].img = imgFile[avatars[i].name] || `${avatars[i].name}.png`
     }
 
     return {
@@ -486,5 +493,20 @@ export default class RoleIndex extends base {
       headIndexStyle: this.headIndexStyle,
       ...this.screenData
     }
+  }
+
+  initFile () {
+    if (imgFile['刻晴']) return imgFile
+    let path = './plugins/genshin/resources/img/gacha/'
+    let character = fs.readdirSync(path + 'character/')
+    let weapon = fs.readdirSync(path + 'weapon/')
+
+    let nameSet = (v) => {
+      let name = v.split('.')
+      imgFile[name[0]] = v
+    }
+    character.forEach(v => nameSet(v))
+    weapon.forEach(v => nameSet(v))
+    return imgFile
   }
 }
