@@ -15,11 +15,14 @@ export class user extends plugin {
         reg: '^#用户统计$',
         fnc: 'userAdmin'
       }, {
-        reg: '^#(刷新|重置)用户(缓存|统计)$',
+        reg: '^#(刷新|重置)用户(缓存|统计|ck|Ck|CK)$',
         fnc: 'resetCache'
       }, {
-        reg: '^#删除(无效|失效)用户$',
+        reg: '^#删除(无效|失效)(用户|ck|Ck|CK)$',
         fnc: 'delDisable'
+      }, {
+        reg: '^#检查公共ck$',
+        fnc: 'checkPubCk'
       }]
     })
     this.User = new UserAdmin(e)
@@ -33,7 +36,7 @@ export class user extends plugin {
     return true
   }
 
-  /** #原石札记 */
+  /** #用户统计$ */
   async userAdmin () {
     if (!this.checkAuth()) {
       return true
@@ -57,6 +60,7 @@ export class user extends plugin {
     if (img) await this.reply(img)
   }
 
+  /** #刷新用户缓存 / #重置用户缓存 */
   async resetCache () {
     if (!this.checkAuth()) {
       return true
@@ -73,5 +77,12 @@ export class user extends plugin {
     }
     let count = await MysInfo.delDisable()
     this.e.reply(count > 0 ? `已删除${count}个无效用户` : '暂无无效用户...')
+  }
+
+  async checkPubCk () {
+    if (!this.checkAuth()) {
+      return true
+    }
+    await MysInfo.checkPubCk()
   }
 }

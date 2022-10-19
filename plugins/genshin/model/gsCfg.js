@@ -234,6 +234,7 @@ class GsCfg {
 
   /** 公共配置ck文件修改hook */
   async change_myspubCk () {
+    await MysInfo.initCache()
     await MysInfo.initPubCk()
   }
 

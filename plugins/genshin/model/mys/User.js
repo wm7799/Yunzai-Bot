@@ -133,7 +133,6 @@ export default class User extends BaseModel {
           uids: []
         }
         cks[ck.ltuid].uids.push(ck.uid)
-
       }
     }
     for (let ltuid in cks) {

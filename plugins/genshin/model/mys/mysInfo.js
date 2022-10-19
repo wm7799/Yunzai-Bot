@@ -214,8 +214,7 @@ export default class MysInfo {
     }
 
     if (!this.ckInfo.ck) {
-      // TODO: 待完善文案
-      this.e.reply('暂无可用CK..')
+      this.e.reply('暂无可用CK，请绑定更多用户或设置公共ck..')
     }
 
     this.e.noTips = true
@@ -263,7 +262,6 @@ export default class MysInfo {
     let res = await GsCfg.getBingCk()
     for (let qq in res.ckQQ) {
       let ck = res.ckQQ[qq]
-      // todo: 待使用已有ck
       if (ck.uid && ck.ltuid) {
         let data = {}
         data[ck.uid] = ck
@@ -390,5 +388,19 @@ export default class MysInfo {
 
   static async delDisable () {
     return await MysUser.delDisable()
+  }
+
+  // TODO: 待完备
+  static async checkPubCk () {
+    let pubCount = 0
+    let pubCks = GsCfg.getConfig('mys', 'pubCk') || []
+    for (let ck of pubCks) {
+      let uids = await MysUser.checkCk(ck)
+      if (uids && uids.length > 0) {
+        // succ
+      } else {
+        // fail
+      }
+    }
   }
 }

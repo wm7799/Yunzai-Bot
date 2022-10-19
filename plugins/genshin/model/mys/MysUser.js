@@ -10,6 +10,7 @@ import DailyCache from './DailyCache.js'
 import BaseModel from './BaseModel.js'
 import User from './User.js'
 import lodash from 'lodash'
+import fetch from 'node-fetch'
 
 const tables = {
   // ltuid-uid 查询表
@@ -46,20 +47,20 @@ export default class MysUser extends BaseModel {
     if (!self) {
       self = this
     }
-    // 单日有效缓存，使用uid区分不同服务器
-    self.servCache = self.servCache || DailyCache.create(data.uid || 'mys')
     // 单日有效缓存，不区分服务器
     self.cache = self.cache || DailyCache.create()
     self.uids = self.uids || []
     self.ltuid = data.ltuid
     self.ck = self.ck || data.ck
     self.qq = self.qq || data.qq || 'pub'
-    if (data.uid) {
-      self.addUid(data.uid)
+    if (data.uid || data.uids) {
+      self.addUid(data.uid || data.uids)
     }
     if (data.ck && data.ltuid) {
       self.ckData = data
     }
+    // 单日有效缓存，使用uid区分不同服务器
+    self.servCache = self.servCache || DailyCache.create(self.uids[0] || 'mys')
     return self._cacheThis()
   }
 
@@ -81,11 +82,15 @@ export default class MysUser extends BaseModel {
       if (ckUser) {
         return ckUser
       }
-      return new MysUser({
-        ltuid,
-        ck: data,
-        type: 'ck'
-      })
+      let uids = await MysUser.checkCk(data)
+      if (uids) {
+        return new MysUser({
+          ltuid,
+          ck: data,
+          type: 'ck',
+          uids
+        })
+      }
     }
     // 传入ltuid
     if (/\d{4,9}/.test(data)) {
@@ -150,12 +155,19 @@ export default class MysUser extends BaseModel {
 
   // 为当前MysUser绑定uid
   addUid (uid) {
+    if (lodash.isArray(uid)) {
+      for (let u of uid) {
+        this.addUid(u)
+      }
+      return true
+    }
     uid = '' + uid
     if (/\d{9}/.test(uid) || uid === 'pub') {
       if (!this.uids.includes(uid)) {
         this.uids.push(uid)
       }
     }
+    return true
   }
 
   // 初始化当前MysUser缓存记录
@@ -353,5 +365,60 @@ export default class MysUser extends BaseModel {
       }
     })
     return count
+  }
+
+  static async getGameRole (ck, serv = 'mys') {
+    let url = {
+      mys: 'https://api-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_cn',
+      hoyo: 'https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global'
+    }
+
+    let res = await fetch(url[serv], { method: 'get', headers: { Cookie: ck } })
+    if (!res.ok) return false
+    res = await res.json()
+
+    return res
+  }
+
+  static async checkCk (ck) {
+    let ltuid = ''
+    let testRet = /ltuid=(\w{0,9})/g.exec(ck)
+    if (testRet && testRet[1]) {
+      ltuid = testRet[1]
+    }
+    if (!ltuid) {
+      return false
+    }
+    // 此处不使用DailyCache，做长期存储
+    let uids = await redis.get(`Yz:genshin:mys:ltuid-uids:${ltuid}`)
+    if (uids) {
+      uids = DailyCache.decodeValue(uids, true)
+      if (uids && uids.length > 0) {
+        return uids
+      }
+    }
+
+    uids = []
+    let res = null
+    for (let serv of ['mys', 'hoyo']) {
+      let roleRes = await MysUser.getGameRole(ck, serv)
+      if (roleRes?.retcode === 0) {
+        res = roleRes
+        break
+      }
+    }
+    if (!res) return false
+    if (!res.data.list || res.data.list.length <= 0) {
+      return false
+    }
+
+    for (let val of res.data.list) {
+      uids.push(val.game_uid * 1)
+    }
+    if (uids.length > 0) {
+      await redis.set(`Yz:genshin:mys:ltuid-uids:${ltuid}`, JSON.stringify(uids), { EX: 3600 * 24 * 90 })
+      return uids
+    }
+    return false
   }
 }
