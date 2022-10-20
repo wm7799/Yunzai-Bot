@@ -248,7 +248,7 @@ class GsCfg {
   }
 
   getMsgUid (msg) {
-    let ret = /[1|2|5][0-9]{8}/g.exec(msg)
+    let ret = /[1|2|5-9][0-9]{8}/g.exec(msg)
     if (!ret) return false
     return ret[0]
   }
@@ -263,7 +263,7 @@ class GsCfg {
    * @return uid 游戏uid
    */
   getRole (msg, filterMsg = '') {
-    let alias = msg.replace(/#|老婆|老公|[1|2|5][0-9]{8}/g, '').trim()
+    let alias = msg.replace(/#|老婆|老公|[1|2|5-9][0-9]{8}/g, '').trim()
     if (filterMsg) {
       alias = alias.replace(new RegExp(filterMsg, 'g'), '').trim()
     }
