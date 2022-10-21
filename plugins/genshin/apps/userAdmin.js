@@ -1,5 +1,5 @@
 import plugin from '../../../lib/plugins/plugin.js'
-import UserAdmin from '../model/userAdmin.js'
+import User from '../model/user.js'
 import puppeteer from '../../../lib/puppeteer/puppeteer.js'
 import fs from 'fs'
 import MysInfo from '../model/mys/mysInfo.js'
@@ -25,7 +25,7 @@ export class user extends plugin {
         fnc: 'checkPubCk'
       }]
     })
-    this.User = new UserAdmin(e)
+    this.User = new User(e)
   }
 
   checkAuth () {
@@ -41,7 +41,7 @@ export class user extends plugin {
     if (!this.checkAuth()) {
       return true
     }
-    let data = await new UserAdmin(this.e).userAdmin()
+    let data = await new User(this.e).userAdmin()
     if (!data) return true
 
     // 临时增加用于view调试
@@ -79,6 +79,7 @@ export class user extends plugin {
     this.e.reply(count > 0 ? `已删除${count}个无效用户` : '暂无无效用户...')
   }
 
+  // 检查公共CK：待完备
   async checkPubCk () {
     if (!this.checkAuth()) {
       return true

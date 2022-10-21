@@ -2,6 +2,7 @@ import moment from 'moment'
 import BaseModel from './BaseModel.js'
 
 const servs = ['mys', 'hoyo']
+// 超时时间不必精确，直接定24小时即可
 const EX = 3600 * 24
 
 export default class DailyCache extends BaseModel {
@@ -92,7 +93,8 @@ export default class DailyCache extends BaseModel {
   // 设置指定key内容，若value为数组或对象会自动encode
   async kSet (table, key, value) {
     value = DailyCache.encodeValue(value)
-    return await redis.hSet(this.getTableKey(table), '' + key, value)
+    await redis.hSet(this.getTableKey(table), '' + key, value)
+    await this.exTable(this.getTableKey(table))
   }
 
   async kDel (table, key) {
@@ -150,6 +152,7 @@ export default class DailyCache extends BaseModel {
     let count = await this.zCount(table, key) || 0
     const countKey = this.getTableKey(table, 'count')
     await redis.zAdd(countKey, { score: count, value: key })
+    await this.exTable(this.getTableKey(table), true)
   }
 
   // 根据key获取list

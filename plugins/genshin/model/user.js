@@ -4,11 +4,11 @@ import lodash from 'lodash'
 import fetch from 'node-fetch'
 import fs from 'node:fs'
 import common from '../../../lib/common/common.js'
-import UserModel from './mys/User.js'
+import CkUser from './mys/CkUser.js'
 import MysUser from './mys/MysUser.js'
 import MysInfo from './mys/mysInfo.js'
 
-export default class UserAdmin extends base {
+export default class User extends base {
   constructor (e) {
     super(e)
     this.model = 'bingCk'
@@ -22,7 +22,13 @@ export default class UserAdmin extends base {
   // 获取当前user实例
   async user () {
     await MysInfo.initCache()
-    return await UserModel.create(this.e)
+    let user = await CkUser.create(this.e)
+    if (user) {
+      // 强制读取一次ck，防止一些问题
+      user._getCkData()
+      return user
+    }
+    return false
   }
 
   async resetCk () {

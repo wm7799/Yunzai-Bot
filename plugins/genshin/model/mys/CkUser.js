@@ -10,7 +10,7 @@ import lodash from 'lodash'
 import MysUser from './MysUser.js'
 import gsCfg from '../gsCfg.js'
 
-export default class User extends BaseModel {
+export default class CkUser extends BaseModel {
   constructor (qq, data = null) {
     super()
     // 检查实例缓存
@@ -39,11 +39,11 @@ export default class User extends BaseModel {
     // 兼容处理传入e
     if (qq && qq.user_id) {
       let e = qq
-      let user = await User.create(e.user_id)
+      let user = await CkUser.create(e.user_id)
       e.user = user
       return user
     }
-    let user = new User(qq, data)
+    let user = new CkUser(qq, data)
     // 检查绑定uid (regUid)
     await user.getRegUid()
     // 传入data则使用，否则读取

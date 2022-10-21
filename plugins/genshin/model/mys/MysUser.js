@@ -8,7 +8,7 @@
 * */
 import DailyCache from './DailyCache.js'
 import BaseModel from './BaseModel.js'
-import User from './User.js'
+import CkUser from './CkUser.js'
 import lodash from 'lodash'
 import fetch from 'node-fetch'
 
@@ -217,10 +217,6 @@ export default class MysUser extends BaseModel {
         }
       }
     }
-    await this.servCache.exTable(tables.detail, true)
-    await this.cache.exTable(tables.uid, true)
-    await this.cache.exTable(tables.ck)
-    await this.cache.exTable(tables.qq)
     return true
   }
 
@@ -278,7 +274,7 @@ export default class MysUser extends BaseModel {
     let qqArr = await this.cache.kGet(tables.qq, this.ltuid, true)
     if (qqArr && qqArr.length > 0) {
       for (let qq of qqArr) {
-        let user = await User.create(qq)
+        let user = await CkUser.create(qq)
         if (user) {
           // 调用user删除ck
           await user.delCk(this.ltuid, false)

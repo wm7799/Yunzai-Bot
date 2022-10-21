@@ -3,7 +3,7 @@ import lodash from 'lodash'
 import base from './base.js'
 import MysApi from './mys/mysApi.js'
 import gsCfg from './gsCfg.js'
-import UserAdmin from './userAdmin.js'
+import User from './user.js'
 import common from '../../../lib/common/common.js'
 import cfg from '../../../lib/config/config.js'
 
@@ -81,7 +81,7 @@ export default class MysSign extends base {
 
     if (signInfo.retcode == -100 && signInfo.message == '尚未登录') {
       logger.error(`[原神签到失败]${this.log} 绑定cookie已失效`)
-      let userAdmin = new UserAdmin(this.e)
+      let userAdmin = new User(this.e)
       if (userAdmin) {
         await userAdmin.delCk(ck.uid)
       }

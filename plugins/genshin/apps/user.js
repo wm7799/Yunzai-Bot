@@ -1,7 +1,7 @@
 import plugin from '../../../lib/plugins/plugin.js'
 import fs from 'node:fs'
 import gsCfg from '../model/gsCfg.js'
-import UserAdmin from '../model/userAdmin.js'
+import User from '../model/user.js'
 
 export class user extends plugin {
   constructor (e) {
@@ -47,7 +47,7 @@ export class user extends plugin {
         }
       ]
     })
-    this.User = new UserAdmin(e)
+    this.User = new User(e)
   }
 
   async init () {
