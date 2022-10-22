@@ -8,7 +8,8 @@
 * */
 import DailyCache from './DailyCache.js'
 import BaseModel from './BaseModel.js'
-import CkUser from './CkUser.js'
+import NoteUser from './NoteUser.js'
+import MysApi from './mysApi.js'
 import lodash from 'lodash'
 import fetch from 'node-fetch'
 
@@ -82,7 +83,7 @@ export default class MysUser extends BaseModel {
       if (ckUser) {
         return ckUser
       }
-      let uids = await MysUser.checkCk(data)
+      let uids = await MysUser.getCkUid(data)
       if (uids) {
         return new MysUser({
           ltuid,
@@ -274,7 +275,7 @@ export default class MysUser extends BaseModel {
     let qqArr = await this.cache.kGet(tables.qq, this.ltuid, true)
     if (qqArr && qqArr.length > 0) {
       for (let qq of qqArr) {
-        let user = await CkUser.create(qq)
+        let user = await NoteUser.create(qq)
         if (user) {
           // 调用user删除ck
           await user.delCk(this.ltuid, false)
@@ -376,36 +377,55 @@ export default class MysUser extends BaseModel {
     return res
   }
 
-  static async checkCk (ck) {
+  /**
+   * 获取ck对应uid列表
+   *
+   * @param ck 需要获取的ck
+   * @param withMsg false:uids / true: {uids, msg}
+   * @param force 忽略缓存，强制更新
+   */
+  static async getCkUid (ck, withMsg = false, force = false) {
     let ltuid = ''
     let testRet = /ltuid=(\w{0,9})/g.exec(ck)
     if (testRet && testRet[1]) {
       ltuid = testRet[1]
     }
-    if (!ltuid) {
-      return false
+    let uids = []
+    let ret = (msg, retUid) => {
+      return withMsg ? { msg, uids: retUid || [] } : retUid
     }
-    // 此处不使用DailyCache，做长期存储
-    let uids = await redis.get(`Yz:genshin:mys:ltuid-uids:${ltuid}`)
-    if (uids) {
-      uids = DailyCache.decodeValue(uids, true)
-      if (uids && uids.length > 0) {
-        return uids
+    if (!ltuid) {
+      return ret('无ltuid', false)
+    }
+
+    if (!force) {
+      // 此处不使用DailyCache，做长期存储
+      uids = await redis.get(`Yz:genshin:mys:ltuid-uids:${ltuid}`)
+      if (uids) {
+        uids = DailyCache.decodeValue(uids, true)
+        if (uids && uids.length > 0) {
+          return ret('', uids)
+        }
       }
     }
 
     uids = []
     let res = null
+    let msg = 'error'
     for (let serv of ['mys', 'hoyo']) {
       let roleRes = await MysUser.getGameRole(ck, serv)
       if (roleRes?.retcode === 0) {
         res = roleRes
         break
       }
+      if (roleRes.retcode * 1 === -100) {
+        msg = '该ck已失效，请重新登录获取'
+      }
+      msg = roleRes.message || 'error'
     }
-    if (!res) return false
+    if (!res) return ret(msg, false)
     if (!res.data.list || res.data.list.length <= 0) {
-      return false
+      return ret('该账号尚未绑定原神角色', false)
     }
 
     for (let val of res.data.list) {
@@ -413,8 +433,56 @@ export default class MysUser extends BaseModel {
     }
     if (uids.length > 0) {
       await redis.set(`Yz:genshin:mys:ltuid-uids:${ltuid}`, JSON.stringify(uids), { EX: 3600 * 24 * 90 })
-      return uids
+      return ret('', uids)
     }
-    return false
+    return ret(msg, false)
+  }
+
+  static async checkCkStatus (ck) {
+    let uids = []
+    let err = (msg, status = 2) => {
+      msg = msg + '\n请退出米游社并重新登录后，再次获取CK'
+      return {
+        status,
+        msg,
+        uids
+      }
+    }
+    if (!ck) {
+      return false
+    }
+
+    // 检查绑定UID
+    uids = await MysUser.getCkUid(ck, true, true)
+    if (!uids.uids || uids.uids.length === 0) {
+      return err(uids.msg || 'CK失效')
+    }
+    uids = uids.uids
+    let uid = uids[0]
+    let mys = new MysApi(uid + '', ck, { log: false })
+    // 体力查询
+    let noteRet = await mys.getData('dailyNote')
+    if (noteRet.retcode !== 0 || lodash.isEmpty(noteRet.data)) {
+      let msg = noteRet.message !== 'OK' ? noteRet.message : 'CK失效'
+      return err(`${msg || 'CK失效'}，无法查询体力及角色信息`)
+    }
+
+    // 角色查询
+    let roleRet = await mys.getData('character')
+    if (roleRet.retcode !== 0 || lodash.isEmpty(roleRet.data)) {
+      let msg = noteRet.message !== 'OK' ? noteRet.message : 'CK失效'
+      return err(`${msg || 'CK失效'}，当前CK仍可查询体力，无法查询角色信息`)
+    }
+
+    let detailRet = await mys.getData('detail', { avatar_id: 10000021 })
+    if (detailRet.retcode !== 0 || lodash.isEmpty(detailRet.data)) {
+      let msg = noteRet.message !== 'OK' ? noteRet.message : 'CK失效'
+      return err(`${msg || 'CK失效'}，当前CK仍可查询体力及角色，但无法查询角色详情数据`, 1)
+    }
+    return {
+      uids,
+      status: 0,
+      msg: 'CK状态正常'
+    }
   }
 }

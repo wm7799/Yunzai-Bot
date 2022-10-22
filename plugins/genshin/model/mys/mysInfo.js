@@ -1,7 +1,7 @@
 import MysApi from './mysApi.js'
 import GsCfg from '../gsCfg.js'
 import lodash from 'lodash'
-import CkUser from './CkUser.js'
+import NoteUser from './NoteUser.js'
 import MysUser from './MysUser.js'
 import DailyCache from './DailyCache.js'
 
@@ -80,7 +80,7 @@ export default class MysInfo {
 
   /** 获取uid */
   static async getUid (e) {
-    let user = await CkUser.create(e)
+    let user = await NoteUser.create(e)
     if (e.uid) {
       /** 没有绑定的自动绑定 */
       return await user.setRegUid(e.uid, false)
@@ -92,7 +92,7 @@ export default class MysInfo {
     let uid = false
     /** at用户 */
     if (at) {
-      let atUser = await CkUser.create(at)
+      let atUser = await NoteUser.create(at)
       uid = atUser.uid
       if (uid) return String(uid)
       if (e.noTips !== true) e.reply('尚未绑定uid', false, { at })
@@ -122,8 +122,8 @@ export default class MysInfo {
     let { msg = '', at = '' } = e
     if (!msg) return false
 
-    let user = await CkUser.create(e)
-    let selfUser = at ? await CkUser.create(at) : user
+    let user = await NoteUser.create(e)
+    let selfUser = at ? await NoteUser.create(at) : user
 
     if (!selfUser.hasCk) {
       if (e.noTips !== true) e.reply('尚未绑定cookie', false, { at: selfUser.qq })
@@ -265,7 +265,7 @@ export default class MysInfo {
       if (ck.uid && ck.ltuid) {
         let data = {}
         data[ck.uid] = ck
-        let user = await CkUser.create(qq, data)
+        let user = await NoteUser.create(qq, data)
         userCount += await user.initCache(true)
       }
     }
@@ -395,7 +395,7 @@ export default class MysInfo {
     let pubCount = 0
     let pubCks = GsCfg.getConfig('mys', 'pubCk') || []
     for (let ck of pubCks) {
-      let uids = await MysUser.checkCk(ck)
+      let uids = await MysUser.getCkUid(ck)
       if (uids && uids.length > 0) {
         // succ
       } else {

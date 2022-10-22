@@ -1,10 +1,9 @@
 import base from './base.js'
 import gsCfg from './gsCfg.js'
 import lodash from 'lodash'
-import fetch from 'node-fetch'
 import fs from 'node:fs'
 import common from '../../../lib/common/common.js'
-import CkUser from './mys/CkUser.js'
+import NoteUser from './mys/NoteUser.js'
 import MysUser from './mys/MysUser.js'
 import MysInfo from './mys/mysInfo.js'
 
@@ -22,7 +21,7 @@ export default class User extends base {
   // 获取当前user实例
   async user () {
     await MysInfo.initCache()
-    let user = await CkUser.create(this.e)
+    let user = await NoteUser.create(this.e)
     if (user) {
       // 强制读取一次ck，防止一些问题
       user._getCkData()
@@ -151,16 +150,7 @@ export default class User extends base {
   }
 
   async getrGameRoles (server = 'mys') {
-    let url = {
-      mys: 'https://api-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_cn',
-      hoyolab: 'https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global'
-    }
-
-    let res = await fetch(url[server], { method: 'get', headers: { Cookie: this.ck } })
-    if (!res.ok) return false
-    res = await res.json()
-
-    return res
+    return await MysUser.getGameRole(this.ck, server)
   }
 
   /** 保存ck */
@@ -313,6 +303,29 @@ export default class User extends base {
       await this.e.reply(`当前绑定cookie\nuid：${ck.uid}`)
       await this.e.reply(ck.ck)
     }
+  }
+
+  async checkCkStatus () {
+    let user = await this.user()
+    if (!user.hasCk) {
+      return await this.showUid()
+    }
+    let checkRet = await user.checkCk()
+    let cks = []
+    lodash.forEach(checkRet, (ds, idx) => {
+      let tmp = [`#${idx + 1}: [CK:${ds.ltuid}] - 【${ds.status === 0 ? '正常' : '失效'}】`]
+      if (ds.uids && ds.uids.length > 0) {
+        tmp.push(`绑定UID: [ ${ds.uids.join(', ')} ]`)
+      }
+      if (ds.status !== 0) {
+        tmp.push(ds.msg)
+      }
+      cks.push(tmp.join('\n'))
+    })
+    await this.showUid()
+    await this.e.reply([
+      cks.join('\n----\n')
+    ])
   }
 
   getGuid () {

@@ -44,6 +44,10 @@ export class user extends plugin {
         {
           reg: '^#(我的)?(uid|UID)[0-9]{0,2}$',
           fnc: 'showUid'
+        },
+        {
+          reg: '^#\\s*(检查|我的)*ck(状态)*$',
+          fnc: 'checkCkStatus'
         }
       ]
     })
@@ -154,5 +158,9 @@ export class user extends plugin {
   /** 加载旧的绑定ck json */
   loadOldData () {
     this.User.loadOldData()
+  }
+
+  async checkCkStatus () {
+    await this.User.checkCkStatus()
   }
 }
