@@ -344,7 +344,10 @@ export default class MysUser extends BaseModel {
     return ret
   }
 
-  // 删除失效用户
+  /**
+   * 删除失效用户
+   * @returns {Promise<number>} 删除用户的个数
+   */
   static async delDisable () {
     let count = 0
     await MysUser.eachServ(async function (servCache) {
@@ -379,10 +382,10 @@ export default class MysUser extends BaseModel {
 
   /**
    * 获取ck对应uid列表
-   *
    * @param ck 需要获取的ck
    * @param withMsg false:uids / true: {uids, msg}
    * @param force 忽略缓存，强制更新
+   * @returns {Promise<{msg: *, uids}>}
    */
   static async getCkUid (ck, withMsg = false, force = false) {
     let ltuid = ''
@@ -438,6 +441,11 @@ export default class MysUser extends BaseModel {
     return ret(msg, false)
   }
 
+  /**
+   * 检查CK状态
+   * @param ck 需要检查的CK
+   * @returns {Promise<boolean|{msg: string, uids: *[], status: number}>}
+   */
   static async checkCkStatus (ck) {
     let uids = []
     let err = (msg, status = 2) => {

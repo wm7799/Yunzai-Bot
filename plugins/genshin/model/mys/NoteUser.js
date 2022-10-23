@@ -35,6 +35,13 @@ export default class NoteUser extends BaseModel {
   }
 
   // 初始化 user
+  /**
+   * 创建NoteUser实例
+   * @param qq NoterUser对应id（qq）
+   * * 若传入e对象则会识别e.user_id，并将user对象添加至e.user
+   * @param data 用户对应MysCookie数据，为空则自动读取
+   * @returns {Promise<NoteUser|*>}
+   */
   static async create (qq, data = null) {
     // 兼容处理传入e
     if (qq && qq.user_id) {
@@ -62,12 +69,16 @@ export default class NoteUser extends BaseModel {
     return this._regUid || ''
   }
 
-  // 具有CK
+  /**
+   * 当前用户是否具备CK
+   */
   get hasCk () {
     return this.ckData && !lodash.isEmpty(this.ckData)
   }
 
-  // 获取绑定CK的UID列表，如未绑定CK则返回空数组
+  /**
+   * 获取绑定CK的UID列表，如未绑定CK则返回空数组
+   */
   get ckUids () {
     if (!this.hasCk) {
       return []
@@ -87,6 +98,10 @@ export default class NoteUser extends BaseModel {
     return false
   }
 
+  /**
+   * 获取当前用户的所有ck
+   * @returns { {ltuid:{ckData, ck, uids}} }
+   */
   get cks () {
     let cks = {}
     if (!this.hasCk) {
@@ -106,6 +121,11 @@ export default class NoteUser extends BaseModel {
     return cks
   }
 
+  /**
+   * 获取当前用户的绑定UID
+   * 主要供内部调用，建议使用 user.uid 获取用户uid
+   * @returns {Promise<*>}
+   */
   async getRegUid () {
     let redisKey = `Yz:genshin:mys:qq-uid:${this.qq}`
     let uid = await redis.get(redisKey)
@@ -118,8 +138,6 @@ export default class NoteUser extends BaseModel {
 
   /**
    * 设置当前用户的绑定uid
-   * 若存在ck，则优先使用ck的uid
-   *
    * @param uid 要绑定的uid
    * @param force 若已存在绑定uid关系是否强制更新
    */

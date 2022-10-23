@@ -18,13 +18,20 @@ export default class DailyCache extends BaseModel {
     return this._cacheThis()
   }
 
-  // 传入UID或server标示，返回当日存储对象
+  /**
+   * 传入UID或server标示，返回当日存储对象
+   * @param uid
+   * * 为空则返回与serv无关的dailyCache
+   * * 传入UID，会返回UID对应serv的cache对象
+   * * 传入servKey (mys/hoyo)，会返回指定的servCache
+   * @returns {DailyCache}
+   */
   static create (uid) {
     return new DailyCache(uid)
   }
 
   /** ---- 基础方法 ---- **/
-  // 获取redis表key键值
+  // 内部方法：获取redis表key键值
   getTableKey (key, sub = '') {
     if (sub) {
       return `${this.keyPre}:${key}-${sub}`
@@ -33,13 +40,7 @@ export default class DailyCache extends BaseModel {
     }
   }
 
-  async initTableKey (key) {
-    let tableKey = this.getTableKey(key)
-    await redis.expire(tableKey, EX)
-    return tableKey
-  }
-
-  // 获取server key
+  // 内部方法：获取server key
   static getServKey (uid) {
     // 不传入uid为默认cache
     if (!uid || uid === 'cache') {
@@ -49,12 +50,18 @@ export default class DailyCache extends BaseModel {
     return /^[6-9]|^hoyo|^os/i.test(uid) ? servs[1] : servs[0]
   }
 
+  // 内部方法：获取redis表前缀
   static getStoreKey (uid) {
     const serv = DailyCache.getServKey(uid)
     const date = moment().format('MM-DD')
     return `${serv}-${date}`
   }
 
+  /**
+   * 遍历所有servCache
+   * @param fn
+   * @returns {Promise<void>}
+   */
   static async eachCache (fn) {
     for (const serv of servs) {
       let cache = DailyCache.create(serv)
@@ -64,6 +71,12 @@ export default class DailyCache extends BaseModel {
     }
   }
 
+  /**
+   * 设置指定表的过期时间
+   * @param table 表
+   * @param hasCount 是否具有count表（KeyList）
+   * @returns {Promise<void>}
+   */
   async exTable (table, hasCount = false) {
     await redis.expire(this.getTableKey(table), EX)
     if (hasCount) {
@@ -71,7 +84,11 @@ export default class DailyCache extends BaseModel {
     }
   }
 
-  // 清空表
+  /**
+   * 清空删除指定表
+   * @param table
+   * @returns {Promise<void>}
+   */
   async empty (table) {
     await redis.del(this.getTableKey(table))
     await redis.del(this.getTableKey(table, 'count'))
@@ -84,36 +101,66 @@ export default class DailyCache extends BaseModel {
    * 使用redis kv存储,所有操作需要指定表名
    *
    * **/
-  // 获取指定key内容，decode = true会进行decode
+
+  /**
+   * 获取表指定key内容
+   * @param table 表名
+   * @param key 数据存储key
+   * @param decode 是否对内容进行decode
+   * @returns {Promise<any|boolean>}
+   */
   async kGet (table, key, decode = false) {
     let value = await redis.hGet(this.getTableKey(table), '' + key)
     return DailyCache.decodeValue(value, decode)
   }
 
-  // 设置指定key内容，若value为数组或对象会自动encode
+  /**
+   * 设置表指定key内容
+   * @param table 表名
+   * @param key 数据存储key
+   * @param value 数据，若传入对象或数组会自动encode
+   * @returns {Promise<void>}
+   */
   async kSet (table, key, value) {
     value = DailyCache.encodeValue(value)
     await redis.hSet(this.getTableKey(table), '' + key, value)
     await this.exTable(this.getTableKey(table))
   }
 
+  /**
+   * 删除表中指定key内容
+   * @param table 表名
+   * @param key 数据存储key
+   * @returns {Promise<number>}
+   */
   async kDel (table, key) {
     return await redis.hDel(this.getTableKey(table), '' + key)
   }
 
-  // 获取指定key内容，decode = true会进行decode
+  /**
+   * 获取指定表内容
+   * @param table 表名
+   * @param decode 是否对内容进行decode
+   * @returns {Promise<any|boolean>}
+   */
   async get (table, decode = false) {
     const tableKey = this.getTableKey(table)
     let value = await redis.get(tableKey)
     return DailyCache.decodeValue(value, decode)
   }
 
-  // 设置指定key内容，若value为数组或对象会自动encode
+  /**
+   * 设置指定表内容
+   * @param table 表名
+   * @param value 数据，若传入对象或数组会自动encode
+   * @returns {Promise<any|boolean>}
+   */
   async set (table, value) {
     value = DailyCache.encodeValue(value)
     return await redis.set(this.getTableKey(table), value, { EX })
   }
 
+  // 内部方法，用于decode value
   static decodeValue (value, decode = false) {
     if (value && decode) {
       try {
@@ -125,6 +172,7 @@ export default class DailyCache extends BaseModel {
     return value
   }
 
+  // 内部方法，用于encode value
   static encodeValue (value) {
     if (typeof (value) === 'object') {
       return JSON.stringify(value) || ''
@@ -139,11 +187,20 @@ export default class DailyCache extends BaseModel {
    * 【基础数据结构】：Key-List
    *
    * 每个key对应一个list，key必须为数字，list间的item不重复
-   * 自动统计list长度并排序
+   * 若重复item被添加，则会将item移至指定key对应List中
+   *
+   * 会自动统计每个list长度并排序
    * 使用redis sorted map存储，所有操作需要指定表名
    *
    * **/
-  // 为key-list添加item
+
+  /**
+   * 为KeyList添加 item
+   * @param table 表名
+   * @param key 添加item对应 key键值
+   * @param item 添加的item
+   * @returns {Promise<void>}
+   */
   async zAdd (table, key, item) {
     const tableKey = this.getTableKey(table)
     await redis.zAdd(tableKey, { score: key, value: item + '' })
@@ -156,29 +213,56 @@ export default class DailyCache extends BaseModel {
   }
 
   // 根据key获取list
+  /**
+   * 根据Key获取List
+   * @param table 表名
+   * @param key key键值
+   * @returns {Promise<Array<ConvertArgumentType<string | Buffer, string>>>}
+   */
   async zList (table, key) {
     return await redis.zRangeByScore(this.getTableKey(table), key, key)
   }
 
-  // 获取item所在list对应key
+  /**
+   * 获取指定item所在List对应的key键值
+   * @param table 表名
+   * @param item item
+   * @returns {Promise<number>}
+   */
   async zKey (table, item) {
     return await redis.zScore(this.getTableKey(table), item + '')
   }
 
-  // 获取key-list的长度
+  /**
+   * 获取指定key对应List的长度
+   * @param table 表名
+   * @param key 需要获取长度的key
+   * @returns {Promise<number>} 长度值
+   */
   async zCount (table, key) {
     return await redis.zCount(this.getTableKey(table), key, key)
   }
 
-  // 获取list-item数量最小的Key
-  // 内部场景使用，就简单处理有效范围为0-29
+  /**
+   * 获取当前KeyList中，List长度最小的一个key
+   * 由于内部场景使用，简单规定List长度有效范围为0-60
+   * @param table
+   * @returns {Promise<string>}
+   */
   async zMinKey (table) {
-    let keys = await redis.zRangeByScore(this.getTableKey(table, 'count'), 0, 29)
+    let keys = await redis.zRangeByScore(this.getTableKey(table, 'count'), 0, 60)
     return keys[0]
   }
 
-  // 禁用某个key
-  // 清空所有查询关联，同时不再被zMinKey识别并返回
+  /**
+   * 在当前KeyList中禁用指定的key
+   * 会保留所有已有item记录，但不再被zMinKey识别并返回
+   * 主要用于标记CK查询次数超限场景（已经查询的记录仍然有效）
+   * @param table
+   * @param key
+   * @param delCount 是否同时删除count记录，删除后不会被zGetDisableKey获取
+   * @returns {Promise<void>}
+   */
   async zDisableKey (table, key, delCount = false) {
     // 将count标记为99次，记录并防止被后续分配
     const countKey = this.getTableKey(table, 'count')
@@ -189,13 +273,27 @@ export default class DailyCache extends BaseModel {
     }
   }
 
-  // 获取删除的key列表
+  /**
+   * 获取已禁用的key列表，用于主动清除数据使用
+   * @param table
+   * @returns {Promise<Array<ConvertArgumentType<string | Buffer, string>>>}
+   */
   async zGetDisableKey (table) {
     return await redis.zRangeByScore(this.getTableKey(table, 'count'), 99, 99)
   }
 
   // 删除某个key
   // 清空所有查询关联，同时不再被zMinKey识别并返回
+  /**
+   * 删除指定key记录
+   * 清空所有查询关联，同时不再被zMinKey识别并返回
+   * 与zDisableKey的区别在于会删除detail中已存在的记录
+   * 主要用于CK失效场景（已经查询的记录也同时失效）
+   * @param table
+   * @param key
+   * @param delCount 是否同时删除count记录，删除后不会被zGetDisableKey获取
+   * @returns {Promise<boolean>}
+   */
   async zDel (table, key, delCount = false) {
     // 删除key对应list所有记录
     let check = redis.zScore(this.getTableKey(table, 'count'), key)
@@ -204,7 +302,11 @@ export default class DailyCache extends BaseModel {
     return !!check
   }
 
-  // 统计
+  /**
+   * 获取指定表格的key:List count 统计数据
+   * @param table
+   * @returns {Promise<{key:count}>}
+   */
   async zStat (table) {
     const countKey = this.getTableKey(table, 'count')
     return await redis.zRangeByScoreWithScores(countKey, 0, 100)

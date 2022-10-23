@@ -20,9 +20,6 @@ export class user extends plugin {
       }, {
         reg: '^#删除(无效|失效)(用户|ck|Ck|CK)$',
         fnc: 'delDisable'
-      }, {
-        reg: '^#检查公共ck$',
-        fnc: 'checkPubCk'
       }]
     })
     this.User = new User(e)
@@ -77,13 +74,5 @@ export class user extends plugin {
     }
     let count = await MysInfo.delDisable()
     this.e.reply(count > 0 ? `已删除${count}个无效用户` : '暂无无效用户...')
-  }
-
-  // 检查公共CK：待完备
-  async checkPubCk () {
-    if (!this.checkAuth()) {
-      return true
-    }
-    await MysInfo.checkPubCk()
   }
 }

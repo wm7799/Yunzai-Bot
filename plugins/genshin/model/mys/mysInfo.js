@@ -6,21 +6,6 @@ import MysUser from './MysUser.js'
 import DailyCache from './DailyCache.js'
 
 export default class MysInfo {
-  /** redis key */
-  static keyPre = 'Yz:genshin:mys:'
-  static key = {
-    /** ck使用次数统计 */
-    count: `${MysInfo.keyPre}ck:count`,
-    /** ck使用详情 */
-    detail: `${MysInfo.keyPre}ck:detail`,
-    /** 单个ck使用次数 */
-    ckNum: `${MysInfo.keyPre}ckNum:`,
-    /** 已失效的ck使用详情 */
-    delDetail: `${MysInfo.keyPre}ck:delDetail`,
-    /** qq-uid */
-    qqUid: `${MysInfo.keyPre}qq-uid:`
-  }
-
   static tips = '请先#绑定cookie\n发送【体力帮助】查看配置教程'
 
   constructor (e) {
@@ -40,7 +25,6 @@ export default class MysInfo {
     }
     // ck对应MysUser对象
     this.ckUser = null
-
     this.auth = ['dailyNote', 'bbs_sign_info', 'bbs_sign_home', 'bbs_sign', 'ys_ledger', 'compute', 'avatarSkill', 'detail']
   }
 
@@ -78,7 +62,11 @@ export default class MysInfo {
     return mysInfo
   }
 
-  /** 获取uid */
+  /**
+   * 获取UID
+   * @param e
+   * @returns {Promise<string|boolean|*|string>}
+   */
   static async getUid (e) {
     let user = await NoteUser.create(e)
     if (e.uid) {
@@ -89,7 +77,7 @@ export default class MysInfo {
     let { msg = '', at = '' } = e
     if (!msg) return false
 
-    let uid = false
+    let uid
     /** at用户 */
     if (at) {
       let atUser = await NoteUser.create(at)
@@ -100,7 +88,7 @@ export default class MysInfo {
     }
 
     let matchUid = (msg = '') => {
-      let ret = /[1|2|5-9][0-9]{8}/g.exec(msg)
+      let ret = /[125-9][0-9]{8}/g.exec(msg)
       if (!ret) return false
       return ret[0]
     }
@@ -117,7 +105,11 @@ export default class MysInfo {
     return false
   }
 
-  /** 获取ck绑定uid */
+  /**
+   * 获取ck绑定uid
+   * @param e
+   * @returns {Promise<boolean|*>}
+   */
   static async getSelfUid (e) {
     let { msg = '', at = '' } = e
     if (!msg) return false
@@ -151,6 +143,9 @@ export default class MysInfo {
   }
 
   /**
+   * @param e
+   * @param e.apiSync 多个请求时是否同步请求
+   * @param e.noTips  是否回复提示，用于第一次调用才提示，后续不再提示
    * @param api
    * * `index` 米游社原神首页宝箱等数据
    * * `spiralAbyss` 原神深渊
@@ -161,10 +156,8 @@ export default class MysInfo {
    * * `ys_ledger` 札记
    * * `compute` 养成计算器
    * * `avatarSkill` 角色技能
-   *
-   * @param e.apiSync 多个请求时是否同步请求
-   * @param e.noTips  是否回复提示，用于第一次调用才提示，后续不再提示
-   *
+   * @param data 查询数据data
+   * @param option 配置
    * @param option.log 是否显示请求日志
    */
   static async get (e, api, data = {}, option = {}) {
@@ -179,7 +172,7 @@ export default class MysInfo {
     if (lodash.isObject(api)) {
       let all = []
       /** 同步请求 */
-      if (e.apiSync == true) {
+      if (e.apiSync) {
         res = []
         for (let i in api) {
           res.push(await mysApi.getData(i, api[i]))
@@ -221,6 +214,11 @@ export default class MysInfo {
   }
 
   /* 获取请求所需ck */
+  /**
+   * 获取请求所需CK
+   * @param onlySelfCk 是否只获取uid自己对应的ck。为true则只获取uid对应ck，若无则返回为空
+   * @returns {Promise<string|string|*>} 查询ck，获取失败则返回空
+   */
   async getCookie (onlySelfCk = false) {
     if (this.ckInfo.ck) return this.ckInfo.ck
 
@@ -238,7 +236,10 @@ export default class MysInfo {
     return this.ckInfo.ck
   }
 
-  /** 初始化公共CK */
+  /**
+   * 初始化公共CK
+   * @returns {Promise<void>}
+   */
   static async initPubCk () {
     // 初始化公共CK
     let pubCount = 0
@@ -255,7 +256,11 @@ export default class MysInfo {
     logger.mark(`加载公共ck：${pubCount}个`)
   }
 
-  /** 初始化用户CK */
+  /**
+   * 初始化用户CK
+   * 默认会将用户CK加入查询池
+   * @returns {Promise<void>}
+   */
   static async initUserCk () {
     // 初始化用户缓存
     let userCount = 0
@@ -272,7 +277,12 @@ export default class MysInfo {
     logger.mark(`加载用户UID：${userCount}个，加入查询池`)
   }
 
-  /** 初始化缓存 **/
+  /**
+   * 初始化缓存
+   * @param force 若已经初始化是否强制初始化
+   * @param clearData 强制初始化时是否清除已有数据 (刷新/重置)
+   * @returns {Promise<boolean>}
+   */
   static async initCache (force = false, clearData = false) {
     // 检查缓存标记
     let cache = DailyCache.create()
@@ -300,7 +310,7 @@ export default class MysInfo {
     }
 
     res.retcode = Number(res.retcode)
-    if (type == 'bbs_sign') {
+    if (type === 'bbs_sign') {
       if ([-5003].includes(res.retcode)) {
         res.retcode = 0
       }
@@ -334,7 +344,7 @@ export default class MysInfo {
         this.e.reply('查询已达今日上限')
         break
       case 10102:
-        if (res.message == 'Data is not public for the user') {
+        if (res.message === 'Data is not public for the user') {
           this.e.reply(`\nUID:${this.uid}，米游社数据未公开`, false, { at: this.userId })
         } else {
           this.e.reply(`uid:${this.uid}，请先去米游社绑定角色`)
@@ -342,7 +352,7 @@ export default class MysInfo {
         break
         // 伙伴不存在~
       case -1002:
-        if (res.api == 'detail') res.retcode = 0
+        if (res.api === 'detail') res.retcode = 0
         break
       default:
         this.e.reply(`米游社接口报错，暂时无法查询：${res.message || 'error'}`)
@@ -388,19 +398,5 @@ export default class MysInfo {
 
   static async delDisable () {
     return await MysUser.delDisable()
-  }
-
-  // TODO: 待完备
-  static async checkPubCk () {
-    let pubCount = 0
-    let pubCks = GsCfg.getConfig('mys', 'pubCk') || []
-    for (let ck of pubCks) {
-      let uids = await MysUser.getCkUid(ck)
-      if (uids && uids.length > 0) {
-        // succ
-      } else {
-        // fail
-      }
-    }
   }
 }
