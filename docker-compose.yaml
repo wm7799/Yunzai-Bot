@@ -1,4 +1,4 @@
-version: "2.3"
+version: "3"
 services:
   yunzai-bot:
     container_name: yunzai-bot
@@ -25,6 +25,10 @@ services:
       # - ./yunzai/plugins/Guoba-Plugin:/app/Yunzai-Bot/plugins/Guoba-Plugin                # 锅巴插件
     depends_on:
       redis: { condition: service_healthy }
+    deploy:
+      resources:
+        limits:
+          memory: 2G
 
   redis:
     container_name: yunzai-redis

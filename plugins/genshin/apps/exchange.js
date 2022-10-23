@@ -33,7 +33,8 @@ export class exchange extends plugin {
     let mi18n = await this.getData('mi18n')
 
     if (index.data.remain > 0) {
-      return await this.reply(`暂无直播兑换码\n${mi18n['empty-code-text']}`)
+      let version = mi18n['act-title'].match(/\d.\d/g)
+      return await this.reply(`暂无直播兑换码\n${version}版本前瞻${mi18n['empty-code-text']}`)
     }
 
     let code = await this.getData('code')
@@ -83,8 +84,9 @@ export class exchange extends plugin {
     let ret = await this.getData('actId')
     if (!ret || ret.retcode !== 0) return false
 
-    let post = ret.data.posts[0]
-    let actId = post.post.content.replace('[链接]', '')
+    let post = lodash.map(ret.data.posts, 'post')
+    post = lodash.maxBy(post, 'created_at')
+    let actId = post.content.replace('[链接]', '')
     if (!actId) return false
 
     return actId
