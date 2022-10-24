@@ -96,6 +96,7 @@ class GsCfg {
   async getBingCk () {
     let ck = {}
     let ckQQ = {}
+    let noteCk = {}
     let dir = './data/MysCookie/'
     let files = fs.readdirSync(dir).filter(file => file.endsWith('.yaml'))
 
@@ -120,9 +121,10 @@ class GsCfg {
       if (qq && !ckQQ[String(qq)]) {
         ckQQ[String(qq)] = Object.values(tmp)[0]
       }
+      noteCk[String(qq)] = tmp
     })
 
-    return { ck, ckQQ }
+    return { ck, ckQQ, noteCk }
   }
 
   /** 获取qq号绑定ck */

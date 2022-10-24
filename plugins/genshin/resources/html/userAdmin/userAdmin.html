@@ -38,7 +38,7 @@
         </span>
       </li>
     </ul>
-    <div class="cookie-type yes">已使用NoteCookie</div>
+    <div class="cookie-type">{{mysCount.last}} / {{hoyoCount.last}}</div>
   </div>
   {{set servName = {mys:'米游社', hoyo:'HoyoLab'} }}
   {{set uidLimit = 60 }}
@@ -48,12 +48,13 @@
     {{set listLen = servData.list.length }}
     {{if listLen > 0 }}
     {{each servData.list uid idx}} {{if idx < uidLimit}}
-    <div class="uid type-{{uid.num<29 ? '0':'4'}}">
+    <div class="uid type-{{uid.num<60 ? '0':'4'}}">
       <div class="uid-inner">
-        <span>{{uid.num>29 ? "×" : uid.num}}</span>
+        <span>{{uid.num>60 ? "×" : uid.num}}</span>
         {{uid.ltuid}}
       </div>
-      <div class="uid-process" style="left:-{{ 100-uid.num/29*100 }}%"></div>
+      {{set process = 100 - uid.num/30*100 }}
+      <div class="uid-process" style="left:-{{ process<0?0:process  }}%"></div>
     </div>
     {{/if}} {{/each}}
     {{if listLen > uidLimit}}

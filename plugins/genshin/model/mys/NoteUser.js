@@ -57,6 +57,22 @@ export default class NoteUser extends BaseModel {
     return user
   }
 
+  static async forEach (fn) {
+    // 初始化用户缓存
+    let res = await gsCfg.getBingCk()
+    for (let qq in res.noteCk) {
+      let cks = res.noteCk[qq]
+      if (!lodash.isEmpty(cks)) {
+        let user = await NoteUser.create(qq, cks)
+        if (user && fn) {
+          if (await fn(user) === false) {
+            break
+          }
+        }
+      }
+    }
+  }
+
   /**
    * 获取当前用户uid
    * 如果为绑定用户，优先获取ck对应uid，否则获取绑定uid
@@ -251,14 +267,21 @@ export default class NoteUser extends BaseModel {
         continue
       }
       let checkRet = await MysUser.checkCkStatus(ck)
+      // TODO: 若checkRet中返回了不同的uid，进行CK保存更新
       // 失效
       let mysUser = await MysUser.create(ck)
       if (mysUser) {
-        // status为1时无法查询天赋，但仍可查询角色
-        if ([0, 1].includes(checkRet.status)) {
+        let status = checkRet.status
+        if (status === 0 || status === 1) {
+          // status为1时无法查询天赋，但仍可查询角色，保留CK
           await mysUser.initCache()
-        } else {
-          await mysUser.disable()
+        } else if (status === 2) {
+          // status为2时无法查询角色，删除ck cache
+          // 因仍能查询体力，故保留ck记录不直接删除
+          await mysUser.del()
+        } else if (status === 3) {
+          // status为3时CK完全失效，用户删除此CK
+          await this.delCk(ltuid)
         }
       }
       ret.push({

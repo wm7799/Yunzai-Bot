@@ -4,6 +4,7 @@ import BaseModel from './BaseModel.js'
 const servs = ['mys', 'hoyo']
 // 超时时间不必精确，直接定24小时即可
 const EX = 3600 * 24
+const redisKeyRoot = 'Yz:genshin:mys:'
 
 export default class DailyCache extends BaseModel {
   constructor (uid) {
@@ -14,7 +15,7 @@ export default class DailyCache extends BaseModel {
     if (self) {
       return self
     }
-    this.keyPre = `Yz:genshin:mys:${storeKey}`
+    this.keyPre = `${redisKeyRoot}${storeKey}`
     return this._cacheThis()
   }
 
@@ -67,6 +68,20 @@ export default class DailyCache extends BaseModel {
       let cache = DailyCache.create(serv)
       if (cache) {
         await fn(cache)
+      }
+    }
+  }
+  /**
+   * 删除过期的DailyCache
+   */
+  static async clearOutdatedData () {
+    let keys = await redis.keys(`${redisKeyRoot}*`)
+    const date = moment().format('MM-DD')
+    const testReg = new RegExp(`^${redisKeyRoot}(mys|hoyo|cache)-\\d{2}-\\d{2}`)
+    const todayReg = new RegExp(`^${redisKeyRoot}(mys|hoyo|cache)-${date}`)
+    for (let key of keys) {
+      if (testReg.test(key) && !todayReg.test(key)) {
+        await redis.del(key)
       }
     }
   }

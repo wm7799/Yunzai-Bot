@@ -160,6 +160,7 @@ export class user extends plugin {
     this.User.loadOldData()
   }
 
+  /** 检查用户CK状态 **/
   async checkCkStatus () {
     await this.User.checkCkStatus()
   }

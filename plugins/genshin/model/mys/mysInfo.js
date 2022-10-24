@@ -233,6 +233,8 @@ export default class MysInfo {
         return await this.getCookie(onlySelfCk)
       }
     }
+    // 暂时直接记录请求uid，后期优化分析MysApi请求结果分状态记录结果
+    await mysUser.addQueryUid(this.uid)
     return this.ckInfo.ck
   }
 
@@ -264,16 +266,9 @@ export default class MysInfo {
   static async initUserCk () {
     // 初始化用户缓存
     let userCount = 0
-    let res = await GsCfg.getBingCk()
-    for (let qq in res.ckQQ) {
-      let ck = res.ckQQ[qq]
-      if (ck.uid && ck.ltuid) {
-        let data = {}
-        data[ck.uid] = ck
-        let user = await NoteUser.create(qq, data)
-        userCount += await user.initCache(true)
-      }
-    }
+    await NoteUser.forEach(async function (user) {
+      userCount += await user.initCache(true)
+    })
     logger.mark(`加载用户UID：${userCount}个，加入查询池`)
   }
 
@@ -289,6 +284,7 @@ export default class MysInfo {
     if (!force && await cache.get('cache-status')) {
       return true
     }
+    await DailyCache.clearOutdatedData()
 
     if (clearData) {
       await MysUser.clearCache()

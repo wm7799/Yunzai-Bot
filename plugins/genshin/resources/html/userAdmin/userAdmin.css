@@ -43,7 +43,7 @@ body {
 }
 .stat .detail {
   position: absolute;
-  width: 255px;
+  width: 240px;
   right: 27px;
   top: 45px;
 }
@@ -92,14 +92,8 @@ body {
   position: absolute;
   width: 180px;
   left: 20px;
-  bottom: 30px;
+  bottom: 38px;
   text-align: center;
-}
-.stat .cookie-type.no {
-  color: yellow;
-}
-.stat .cookie-type.yes {
-  color: #fff;
 }
 .cont-title {
   font-size: 15px;

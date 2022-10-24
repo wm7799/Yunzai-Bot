@@ -92,6 +92,7 @@ export default class User extends base {
     msg += '\n【#原石统计】原石统计数据'
     msg += '\n【#练度统计】技能统计列表'
     msg += '\n【#uid】当前绑定ck uid列表'
+    msg += '\n【#ck】检查当前用户ck是否有效'
     msg += '\n【#我的ck】查看当前绑定ck'
     msg += '\n【#删除ck】删除当前绑定ck'
     msg += '\n 支持绑定多个ck'
@@ -308,24 +309,33 @@ export default class User extends base {
   async checkCkStatus () {
     let user = await this.user()
     if (!user.hasCk) {
-      return await this.showUid()
+      await this.e.reply(`未绑定CK，当前绑定uid：${user.uid || '无'}`, false, { at: true })
+      return true
     }
+    let uid = user.uid * 1
+    let uids = user.ckUids
+
     let checkRet = await user.checkCk()
     let cks = []
     lodash.forEach(checkRet, (ds, idx) => {
       let tmp = [`#${idx + 1}: [CK:${ds.ltuid}] - 【${ds.status === 0 ? '正常' : '失效'}】`]
       if (ds.uids && ds.uids.length > 0) {
-        tmp.push(`绑定UID: [ ${ds.uids.join(', ')} ]`)
+        let dsUids = []
+        lodash.forEach(ds.uids, (u) => {
+          dsUids.push(u * 1 === uid ? `☑${u}` : u)
+        })
+        tmp.push(`绑定UID: [ ${dsUids.join(', ')} ]`)
       }
       if (ds.status !== 0) {
         tmp.push(ds.msg)
       }
       cks.push(tmp.join('\n'))
     })
-    await this.showUid()
-    await this.e.reply([
-      cks.join('\n----\n')
-    ])
+    if (uids.length > 1) {
+      cks.push(`当前生效uid：${uid}\n通过【#uid】命令可查看并切换UID`)
+    }
+
+    await this.e.reply(cks.join('\n----\n'), false, { at: true })
   }
 
   getGuid () {

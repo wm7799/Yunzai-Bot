@@ -245,8 +245,13 @@ export default class MysUser extends BaseModel {
     logger.mark(`[标记无效ck][ltuid:${this.ltuid}]`)
   }
 
-  // 删除缓存
-  // 供User解绑CK时调用
+  //
+  //
+  /**
+   * 删除缓存, 供User解绑CK时调用
+   * @param user
+   * @returns {Promise<boolean>}
+   */
   async del (user) {
     if (user && user.qq) {
       let qqList = await this.cache.kGet(tables.qq, this.ltuid, true)
@@ -326,7 +331,7 @@ export default class MysUser extends BaseModel {
           ltuid: ds.value,
           num: ds.score
         })
-        if (ds.score < 29) {
+        if (ds.score < 30) {
           query += ds.score
         }
       })
@@ -334,12 +339,12 @@ export default class MysUser extends BaseModel {
       stat('normal', lodash.filter(list, ds => ds.num < 29).length)
       stat('disable', lodash.filter(list, ds => ds.num > 30).length)
       stat('query', query)
+      stat('last', count.normal * 30 - count.query)
       list = lodash.sortBy(list, ['num', 'ltuid']).reverse()
       ret.servs[serv] = {
         list, count
       }
     })
-    totalCount.last = totalCount.normal * 29 - totalCount.query
     ret.count = totalCount
     return ret
   }
@@ -472,14 +477,14 @@ export default class MysUser extends BaseModel {
     let noteRet = await mys.getData('dailyNote')
     if (noteRet.retcode !== 0 || lodash.isEmpty(noteRet.data)) {
       let msg = noteRet.message !== 'OK' ? noteRet.message : 'CK失效'
-      return err(`${msg || 'CK失效'}，无法查询体力及角色信息`)
+      return err(`${msg || 'CK失效'}，无法查询体力及角色信息`, 3)
     }
 
     // 角色查询
     let roleRet = await mys.getData('character')
     if (roleRet.retcode !== 0 || lodash.isEmpty(roleRet.data)) {
       let msg = noteRet.message !== 'OK' ? noteRet.message : 'CK失效'
-      return err(`${msg || 'CK失效'}，当前CK仍可查询体力，无法查询角色信息`)
+      return err(`${msg || 'CK失效'}，当前CK仍可查询体力，无法查询角色信息`, 2)
     }
 
     let detailRet = await mys.getData('detail', { avatar_id: 10000021 })

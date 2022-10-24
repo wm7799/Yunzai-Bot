@@ -65,7 +65,7 @@ export class user extends plugin {
     // 清空老数据
     const clearData = /重置/.test(this.e.msg)
     await MysInfo.initCache(true, clearData)
-    this.e.reply('用户缓存已重置...')
+    this.e.reply(`用户缓存已${clearData ? '重置' : '刷新'}...\n通过【#用户统计】命令可查看详情`)
   }
 
   async delDisable () {
