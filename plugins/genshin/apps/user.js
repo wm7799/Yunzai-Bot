@@ -37,11 +37,6 @@ export class user extends plugin {
           reg: '#?删除(ck|cookie)$',
           fnc: 'delCk'
         },
-        // {
-        //   reg: '#?重置(ck|cookie)',
-        //   permission: 'master',
-        //   fnc: 'resetCk'
-        // }
         {
           reg: '^#绑定(uid|UID)?[1-9][0-9]{8}$',
           fnc: 'bingUid'
@@ -49,10 +44,13 @@ export class user extends plugin {
         {
           reg: '^#(我的)?(uid|UID)[0-9]{0,2}$',
           fnc: 'showUid'
+        },
+        {
+          reg: '^#\\s*(检查|我的)*ck(状态)*$',
+          fnc: 'checkCkStatus'
         }
       ]
     })
-
     this.User = new User(e)
   }
 
@@ -89,7 +87,7 @@ export class user extends plugin {
   /** 绑定uid */
   saveUid () {
     if (!this.e.msg) return
-    let uid = this.e.msg.match(/[1|2|5|8][0-9]{8}/g)
+    let uid = this.e.msg.match(/[1|2|5-9][0-9]{8}/g)
     if (!uid) {
       this.reply('uid输入错误', false, { at: true })
       return
@@ -115,11 +113,6 @@ export class user extends plugin {
     await this.reply(`Cookie绑定配置教程：${set.cookieDoc}\n获取cookie后【私聊发送】进行绑定`)
   }
 
-  // async resetCk () {
-  //   await this.User.resetCk()
-  //   this.reply('cookie统计次数已重置')
-  // }
-
   /** 绑定ck */
   async bingCk () {
     let set = gsCfg.getConfig('mys', 'set')
@@ -134,7 +127,7 @@ export class user extends plugin {
 
   /** 删除ck */
   async delCk () {
-    let msg = await this.User.del()
+    let msg = await this.User.delCk()
     await this.reply(msg)
   }
 
@@ -146,7 +139,6 @@ export class user extends plugin {
   /** #uid */
   async showUid () {
     let index = this.e.msg.match(/[0-9]{1,2}/g)
-
     if (index && index[0]) {
       await this.User.toggleUid(index[0])
     } else {
@@ -166,5 +158,10 @@ export class user extends plugin {
   /** 加载旧的绑定ck json */
   loadOldData () {
     this.User.loadOldData()
+  }
+
+  /** 检查用户CK状态 **/
+  async checkCkStatus () {
+    await this.User.checkCkStatus()
   }
 }

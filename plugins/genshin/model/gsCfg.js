@@ -53,7 +53,7 @@ class GsCfg {
 
     try {
       this[type][key] = YAML.parse(
-        fs.readFileSync(file, 'utf8')
+          fs.readFileSync(file, 'utf8')
       )
     } catch (error) {
       logger.error(`[${app}][${name}] 格式错误 ${error}`)
@@ -96,6 +96,7 @@ class GsCfg {
   async getBingCk () {
     let ck = {}
     let ckQQ = {}
+    let noteCk = {}
     let dir = './data/MysCookie/'
     let files = fs.readdirSync(dir).filter(file => file.endsWith('.yaml'))
 
@@ -120,9 +121,10 @@ class GsCfg {
       if (qq && !ckQQ[String(qq)]) {
         ckQQ[String(qq)] = Object.values(tmp)[0]
       }
+      noteCk[String(qq)] = tmp
     })
 
-    return { ck, ckQQ }
+    return { ck, ckQQ, noteCk }
   }
 
   /** 获取qq号绑定ck */
@@ -234,7 +236,8 @@ class GsCfg {
 
   /** 公共配置ck文件修改hook */
   async change_myspubCk () {
-    await new MysInfo().addPubCk()
+    await MysInfo.initCache()
+    await MysInfo.initPubCk()
   }
 
   getGachaSet (groupId = '') {
@@ -247,7 +250,7 @@ class GsCfg {
   }
 
   getMsgUid (msg) {
-    let ret = /[1|2|5][0-9]{8}/g.exec(msg)
+    let ret = /[1|2|5-9][0-9]{8}/g.exec(msg)
     if (!ret) return false
     return ret[0]
   }
@@ -262,7 +265,7 @@ class GsCfg {
    * @return uid 游戏uid
    */
   getRole (msg, filterMsg = '') {
-    let alias = msg.replace(/#|老婆|老公|[1|2|5][0-9]{8}/g, '').trim()
+    let alias = msg.replace(/#|老婆|老公|[1|2|5-9][0-9]{8}/g, '').trim()
     if (filterMsg) {
       alias = alias.replace(new RegExp(filterMsg, 'g'), '').trim()
     }

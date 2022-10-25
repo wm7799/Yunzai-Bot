@@ -113,8 +113,7 @@ export class setPubCk extends plugin {
     fs.writeFileSync(set, config, 'utf8')
 
     await common.sleep(500)
-    let mysInfo = new MysInfo(this.e)
-    await mysInfo.initPubCk(true)
+    await MysInfo.initCache(true)
 
     await this.reply('开启成功，用户ck已加入公共查询ck池')
   }

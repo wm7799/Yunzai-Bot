@@ -20,14 +20,12 @@ export default class Note extends base {
 
     if (!res || res.retcode !== 0) return false
     /** 截图数据 */
-    let data = {
+    return {
       name: this.e.sender.card,
       quality: 80,
       ...this.screenData,
       ...this.noteData(res)
     }
-
-    return data
   }
 
   noteData (res) {

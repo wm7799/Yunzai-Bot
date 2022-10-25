@@ -122,7 +122,7 @@ export default class Ledger extends base {
       ck = await MysInfo.checkUidBing(uid)
     }
 
-    if (lodash.isEmpty(ck)) {
+    if (!ck || lodash.isEmpty(ck)) {
       return false
     }
 
@@ -269,7 +269,9 @@ export default class Ledger extends base {
     data.maxMora = lodash.maxBy(data.moraMonth, 'value')
 
     // 按月份重新排序
-    data.primogemsMonth = lodash.sortBy(data.primogemsMonth, (o) => { return Number(o.month) })
+    data.primogemsMonth = lodash.sortBy(data.primogemsMonth, (o) => {
+      return Number(o.month)
+    })
 
     let groupBy = lodash(NoteData).map('month_data').map('group_by').flatMap().value()
 
