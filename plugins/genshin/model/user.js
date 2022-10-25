@@ -106,7 +106,7 @@ export default class User extends base {
   async checkCk (param) {
     let res
     for (let type of ['mys', 'hoyolab']) {
-      let roleRes = await this.getrGameRoles(type)
+      let roleRes = await this.getGameRoles(type)
       if (roleRes?.retcode === 0) {
         res = roleRes
         /** 国际服的标记 */
@@ -150,7 +150,7 @@ export default class User extends base {
     return this.uid
   }
 
-  async getrGameRoles (server = 'mys') {
+  async getGameRoles (server = 'mys') {
     return await MysUser.getGameRole(this.ck, server)
   }
 
@@ -309,7 +309,7 @@ export default class User extends base {
   async checkCkStatus () {
     let user = await this.user()
     if (!user.hasCk) {
-      await this.e.reply(`未绑定CK，当前绑定uid：${user.uid || '无'}`, false, { at: true })
+      await this.e.reply(`\n未绑定CK，当前绑定uid：${user.uid || '无'}`, false, { at: true })
       return true
     }
     let uid = user.uid * 1
@@ -318,7 +318,7 @@ export default class User extends base {
     let checkRet = await user.checkCk()
     let cks = []
     lodash.forEach(checkRet, (ds, idx) => {
-      let tmp = [`#${idx + 1}: [CK:${ds.ltuid}] - 【${ds.status === 0 ? '正常' : '失效'}】`]
+      let tmp = [`\n#${idx + 1}: [CK:${ds.ltuid}] - 【${ds.status === 0 ? '正常' : '失效'}】`]
       if (ds.uids && ds.uids.length > 0) {
         let dsUids = []
         lodash.forEach(ds.uids, (u) => {

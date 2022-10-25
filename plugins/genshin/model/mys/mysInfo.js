@@ -227,14 +227,14 @@ export default class MysInfo {
       if (mysUser.ckData?.ck) {
         this.ckInfo = mysUser.ckData
         this.ckUser = mysUser
+        // 暂时直接记录请求uid，后期优化分析MysApi请求结果分状态记录结果
+        await mysUser.addQueryUid(this.uid)
       } else {
         // 重新分配
         await mysUser.disable()
         return await this.getCookie(onlySelfCk)
       }
     }
-    // 暂时直接记录请求uid，后期优化分析MysApi请求结果分状态记录结果
-    await mysUser.addQueryUid(this.uid)
     return this.ckInfo.ck
   }
 
@@ -394,5 +394,16 @@ export default class MysInfo {
 
   static async delDisable () {
     return await MysUser.delDisable()
+  }
+
+  // 供其他plugin调用
+  static getModels () {
+    return {
+      GsCfg,
+      MysUser,
+      MysInfo,
+      MysApi,
+      NoteUser
+    }
   }
 }
