@@ -3,7 +3,6 @@ import gsCfg from './gsCfg.js'
 import lodash from 'lodash'
 import fs from 'node:fs'
 import common from '../../../lib/common/common.js'
-import NoteUser from './mys/NoteUser.js'
 import MysUser from './mys/MysUser.js'
 import MysInfo from './mys/mysInfo.js'
 
@@ -20,14 +19,7 @@ export default class User extends base {
 
   // 获取当前user实例
   async user () {
-    await MysInfo.initCache()
-    let user = await NoteUser.create(this.e)
-    if (user) {
-      // 强制读取一次ck，防止一些问题
-      user._getCkData()
-      return user
-    }
-    return false
+    return await MysInfo.getNoteUser(this.e)
   }
 
   async resetCk () {

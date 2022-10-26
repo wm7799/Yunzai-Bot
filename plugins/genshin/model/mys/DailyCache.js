@@ -1,7 +1,7 @@
 import moment from 'moment'
 import BaseModel from './BaseModel.js'
 
-const servs = ['mys', 'hoyo']
+const servs = ['mys', 'hoyolab']
 // 超时时间不必精确，直接定24小时即可
 const EX = 3600 * 24
 const redisKeyRoot = 'Yz:genshin:mys:'
@@ -24,7 +24,7 @@ export default class DailyCache extends BaseModel {
    * @param uid
    * * 为空则返回与serv无关的dailyCache
    * * 传入UID，会返回UID对应serv的cache对象
-   * * 传入servKey (mys/hoyo)，会返回指定的servCache
+   * * 传入servKey (mys/hoyolab)，会返回指定的servCache
    * @returns {DailyCache}
    */
   static create (uid) {
@@ -77,8 +77,8 @@ export default class DailyCache extends BaseModel {
   static async clearOutdatedData () {
     let keys = await redis.keys(`${redisKeyRoot}*`)
     const date = moment().format('MM-DD')
-    const testReg = new RegExp(`^${redisKeyRoot}(mys|hoyo|cache)-\\d{2}-\\d{2}`)
-    const todayReg = new RegExp(`^${redisKeyRoot}(mys|hoyo|cache)-${date}`)
+    const testReg = new RegExp(`^${redisKeyRoot}(mys|hoyo|hoyolab|cache)-\\d{2}-\\d{2}`)
+    const todayReg = new RegExp(`^${redisKeyRoot}(mys|hoyo|hoyolab|cache)-${date}`)
     for (let key of keys) {
       if (testReg.test(key) && !todayReg.test(key)) {
         await redis.del(key)

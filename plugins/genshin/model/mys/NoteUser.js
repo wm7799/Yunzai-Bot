@@ -1,10 +1,10 @@
-/*
-* Bot实际User用户类，主键QQ
-*
-* User可以注册UID，通过 getRegUid / setRegUid
-* 一个User可以绑定多个MysUser CK，绑定MysUser
-*
-* */
+/**
+ * Bot实际User用户类
+ * 主键QQ
+ *
+ *  User可以注册UID，通过 getRegUid / setRegUid
+ *  一个User可以绑定多个MysUser CK，绑定MysUser
+ */
 import BaseModel from './BaseModel.js'
 import lodash from 'lodash'
 import MysUser from './MysUser.js'

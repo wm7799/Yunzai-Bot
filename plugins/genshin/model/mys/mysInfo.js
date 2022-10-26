@@ -62,6 +62,17 @@ export default class MysInfo {
     return mysInfo
   }
 
+  static async getNoteUser (e) {
+    await MysInfo.initCache()
+    let user = await NoteUser.create(e)
+    if (user) {
+      // 强制读取一次ck，防止一些问题
+      user._getCkData()
+      return user
+    }
+    return false
+  }
+
   /**
    * 获取UID
    * @param e
@@ -281,7 +292,7 @@ export default class MysInfo {
   static async initCache (force = false, clearData = false) {
     // 检查缓存标记
     let cache = DailyCache.create()
-    if (!force && await cache.get('cache-status')) {
+    if (!force && await cache.get('cache-ready')) {
       return true
     }
     await DailyCache.clearOutdatedData()
@@ -295,7 +306,7 @@ export default class MysInfo {
     // 初始化公共ck
     await MysInfo.initPubCk()
 
-    await cache.set('cache-status', new Date() * 1)
+    await cache.set('cache-ready', new Date() * 1)
     return true
   }
 
@@ -394,16 +405,5 @@ export default class MysInfo {
 
   static async delDisable () {
     return await MysUser.delDisable()
-  }
-
-  // 供其他plugin调用
-  static getModels () {
-    return {
-      GsCfg,
-      MysUser,
-      MysInfo,
-      MysApi,
-      NoteUser
-    }
   }
 }

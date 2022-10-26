@@ -1,11 +1,10 @@
-/*
-* MysUser 米游社用户类
-* 主键ltuid
-*
-* 一个MysUser对应一个有效CK
-* 一个MysUser可能有多个MysUid关联记录
-*
-* */
+/**
+ * MysUser 米游社用户类
+ * 主键ltuid
+ *
+ * 一个MysUser对应一个有效CK
+ * 一个MysUser可能有多个MysUid关联记录
+ */
 import DailyCache from './DailyCache.js'
 import BaseModel from './BaseModel.js'
 import NoteUser from './NoteUser.js'
@@ -222,7 +221,7 @@ export default class MysUser extends BaseModel {
   }
 
   static async eachServ (fn) {
-    let servs = ['mys', 'hoyo']
+    let servs = ['mys', 'hoyolab']
     for (let serv of servs) {
       let servCache = DailyCache.create(serv)
       await fn(servCache, serv)
@@ -375,7 +374,7 @@ export default class MysUser extends BaseModel {
   static async getGameRole (ck, serv = 'mys') {
     let url = {
       mys: 'https://api-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_cn',
-      hoyo: 'https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global'
+      hoyolab: 'https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global'
     }
 
     let res = await fetch(url[serv], { method: 'get', headers: { Cookie: ck } })
@@ -420,7 +419,7 @@ export default class MysUser extends BaseModel {
     uids = []
     let res = null
     let msg = 'error'
-    for (let serv of ['mys', 'hoyo']) {
+    for (let serv of ['mys', 'hoyolab']) {
       let roleRes = await MysUser.getGameRole(ck, serv)
       if (roleRes?.retcode === 0) {
         res = roleRes

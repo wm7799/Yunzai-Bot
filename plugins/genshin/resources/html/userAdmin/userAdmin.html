@@ -27,7 +27,7 @@
           <i>({{mysCount?.normal}}/{{mysCount?.disable}})</i>
         </span>
       </li>
-      {{set hoyoCount = servs?.hoyo?.count }}
+      {{set hoyoCount = servs?.hoyolab?.count }}
       <li>
         <strong>
           <b>HoyoLab</b>
@@ -40,7 +40,7 @@
     </ul>
     <div class="cookie-type">{{mysCount.last}} / {{hoyoCount.last}}</div>
   </div>
-  {{set servName = {mys:'米游社', hoyo:'HoyoLab'} }}
+  {{set servName = {mys:'米游社', hoyolab:'HoyoLab'} }}
   {{set uidLimit = 60 }}
   {{each servs servData servKey}}
   <div class="cont-title">{{servName[servKey]}}-CK列表 (请求次数 / CK-Ltuid)</div>
