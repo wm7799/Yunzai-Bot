@@ -264,6 +264,9 @@ export default class MysInfo {
         if (ret) {
           pubCount++
         }
+        if (pubCount > 15) {
+          break
+        }
       }
     }
     logger.mark(`加载公共ck：${pubCount}个`)
@@ -303,10 +306,12 @@ export default class MysInfo {
 
     // 先初始化用户CK，减少一些公共CK中ltuid无法识别的情况
     await MysInfo.initUserCk()
+
+    await cache.set('cache-ready', new Date() * 1)
+
     // 初始化公共ck
     await MysInfo.initPubCk()
 
-    await cache.set('cache-ready', new Date() * 1)
     return true
   }
 
