@@ -62,6 +62,17 @@ export default class MysInfo {
     return mysInfo
   }
 
+  static async getNoteUser (e) {
+    await MysInfo.initCache()
+    let user = await NoteUser.create(e)
+    if (user) {
+      // 强制读取一次ck，防止一些问题
+      user._getCkData()
+      return user
+    }
+    return false
+  }
+
   /**
    * 获取UID
    * @param e
@@ -227,14 +238,14 @@ export default class MysInfo {
       if (mysUser.ckData?.ck) {
         this.ckInfo = mysUser.ckData
         this.ckUser = mysUser
+        // 暂时直接记录请求uid，后期优化分析MysApi请求结果分状态记录结果
+        await mysUser.addQueryUid(this.uid)
       } else {
         // 重新分配
         await mysUser.disable()
         return await this.getCookie(onlySelfCk)
       }
     }
-    // 暂时直接记录请求uid，后期优化分析MysApi请求结果分状态记录结果
-    await mysUser.addQueryUid(this.uid)
     return this.ckInfo.ck
   }
 
@@ -281,7 +292,7 @@ export default class MysInfo {
   static async initCache (force = false, clearData = false) {
     // 检查缓存标记
     let cache = DailyCache.create()
-    if (!force && await cache.get('cache-status')) {
+    if (!force && await cache.get('cache-ready')) {
       return true
     }
     await DailyCache.clearOutdatedData()
@@ -295,7 +306,7 @@ export default class MysInfo {
     // 初始化公共ck
     await MysInfo.initPubCk()
 
-    await cache.set('cache-status', new Date() * 1)
+    await cache.set('cache-ready', new Date() * 1)
     return true
   }
 

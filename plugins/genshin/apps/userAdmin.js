@@ -41,17 +41,6 @@ export class user extends plugin {
     let data = await new User(this.e).userAdmin()
     if (!data) return true
 
-    // 临时增加用于view调试
-    if (process.argv.includes('web-debug')) {
-      let saveDir = process.cwd() + '/data/ViewData/'
-      if (!fs.existsSync(saveDir)) {
-        fs.mkdirSync(saveDir)
-      }
-      let file = saveDir + 'userAdmin.json'
-      data._app = 'userAdmin'
-      fs.writeFileSync(file, JSON.stringify(data))
-    }
-
     /** 生成图片 */
     let img = await puppeteer.screenshot('userAdmin', data)
     if (img) await this.reply(img)
