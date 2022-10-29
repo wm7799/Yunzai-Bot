@@ -19,6 +19,9 @@ if [[ ! -d "$HOME/.ovo" ]]; then
     mkdir ~/.ovo
 fi
 
+chown -R ${CUID}:${CGID} $(WORK_DIR)
+chmod -R 777 $(WORK_DIR)
+
 echo -e "\n ================ \n ${Info} ${GreenBG} 拉取 Yunzai-Bot 更新 ${Font} \n ================ \n"
 
 if [[ -z $(git status -s) ]]; then
