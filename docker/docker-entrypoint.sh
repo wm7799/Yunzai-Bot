@@ -19,7 +19,7 @@ if [[ ! -d "$HOME/.ovo" ]]; then
     mkdir ~/.ovo
 fi
 
-if if [ $CUID ]; then
+if [ $CUID ]; then
     chown -R ${CUID}:${CGID} $(WORK_DIR)
     chmod -R 777 $(WORK_DIR)
 fi
