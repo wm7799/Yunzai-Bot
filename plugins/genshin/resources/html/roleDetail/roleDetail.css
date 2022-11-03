@@ -1002,3 +1002,16 @@ body {
   background-size: 100%;
   background-position: 40px 0px;
 }
+.纳西妲_bg1 {
+  background: url(../../../../../data/roleDetail/纳西妲1.png) no-repeat;
+  background-size: auto 300px;
+  background-position: 100% 0%;
+}
+.纳西妲_drag {
+  background-position: -150px -55px;
+}
+.纳西妲_bg2 {
+  background-image: url(../../../../../data/roleDetail/纳西妲2.png);
+  background-size: 100%;
+  background-position: 60px 0px;
+}
