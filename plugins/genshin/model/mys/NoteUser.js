@@ -187,6 +187,7 @@ export default class NoteUser extends BaseModel {
     })
     // 保存CK数据
     this._saveCkData()
+    await this.setRegUid(uid, true)
   }
 
   /**
