@@ -33,9 +33,13 @@ export default class MysInfo {
 
     let mysInfo = new MysInfo(e)
 
+    let onlySelfCk = false
+
     if (mysInfo.checkAuth(api)) {
       /** 获取ck绑定uid */
       mysInfo.uid = await MysInfo.getSelfUid(e)
+      // 标记需要自身ck
+      onlySelfCk = true
     } else {
       /** 获取uid */
       mysInfo.uid = await MysInfo.getUid(e)
@@ -54,7 +58,7 @@ export default class MysInfo {
     mysInfo.e.uid = mysInfo.uid
 
     /** 获取ck */
-    await mysInfo.getCookie()
+    await mysInfo.getCookie(onlySelfCk)
 
     /** 判断回复 */
     await mysInfo.checkReply()
@@ -264,7 +268,7 @@ export default class MysInfo {
         if (ret) {
           pubCount++
         }
-        if (pubCount > 15) {
+        if (pubCount >= 20) {
           break
         }
       }

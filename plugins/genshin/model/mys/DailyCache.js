@@ -71,6 +71,7 @@ export default class DailyCache extends BaseModel {
       }
     }
   }
+
   /**
    * 删除过期的DailyCache
    */
@@ -223,7 +224,7 @@ export default class DailyCache extends BaseModel {
     // 同时更新数量，用于数量统计
     let count = await this.zCount(table, key) || 0
     const countKey = this.getTableKey(table, 'count')
-    await redis.zAdd(countKey, { score: count, value: key })
+    await redis.zAdd(countKey, { score: count, value: key + '' })
     await this.exTable(this.getTableKey(table), true)
   }
 
