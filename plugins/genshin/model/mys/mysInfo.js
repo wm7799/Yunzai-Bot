@@ -247,7 +247,7 @@ export default class MysInfo {
       } else {
         // 重新分配
         await mysUser.disable()
-        return await this.getCookie(onlySelfCk)
+        return onlySelfCk ? '' : await this.getCookie()
       }
     }
     return this.ckInfo.ck
