@@ -73,8 +73,8 @@ export default class MysUser extends BaseModel {
     if (lodash.isPlainObject(data)) {
       return new MysUser(data)
     }
-    // 传入cookiue
-    let testRet = /ltuid=(\w{0,9})/g.exec(data)
+    // 传入cookie
+    let testRet = /ltuid=(\d{4,9})/g.exec(data)
     if (testRet && testRet[1]) {
       let ltuid = testRet[1]
       // 尝试使用ltuid创建
@@ -93,7 +93,7 @@ export default class MysUser extends BaseModel {
       }
     }
     // 传入ltuid
-    if (/\d{4,9}/.test(data)) {
+    if (/^\d{4,9}$/.test(data)) {
       // 查找ck记录
       let cache = DailyCache.create()
       let ckData = await cache.kGet(tables.ck, data, true)
@@ -114,21 +114,16 @@ export default class MysUser extends BaseModel {
     const create = async function (ltuid) {
       if (!ltuid) return false
 
-      let ckData = await cache.kGet(tables.ck, ltuid, true)
-      if (!ckData || !ckData.ltuid) {
-        // 有ltuid但查不到ckData，则将ltuid置为失效
-        await servCache.zDel(tables.detail, ltuid)
-        return false
-      }
-
-      let ckUser = await MysUser.create(ckData)
+      let ckUser = await MysUser.create(ltuid)
       if (!ckUser) {
         await servCache.zDel(tables.detail, ltuid)
         return false
       }
 
       // 若声明只获取自己ck，则判断uid是否为本人所有
-      if (onlySelfCk && !await ckUser.ownUid(uid)) return false
+      if (onlySelfCk && !await ckUser.ownUid(uid)) {
+        return false
+      }
 
       return ckUser
     }
@@ -179,13 +174,14 @@ export default class MysUser extends BaseModel {
     // 为当前MysUser添加uid查询记录
     if (!lodash.isEmpty(this.uids)) {
       for (let uid of this.uids) {
-        await this.addQueryUid(uid)
-        // 添加ltuid-uid记录，用于判定ltuid绑定个数及自ltuid查询
-        await this.cache.zAdd(tables.uid, this.ltuid, uid)
+        if (uid !== 'pub') {
+          await this.addQueryUid(uid)
+          // 添加ltuid-uid记录，用于判定ltuid绑定个数及自ltuid查询
+          await this.cache.zAdd(tables.uid, this.ltuid, uid)
+        }
       }
     } else {
-      // TODO:为了兼容没有UID的情况，使用ltuid插入，待完善
-      await this.addQueryUid(this.ltuid)
+      console.log(`ltuid:${this.ltuid}暂无uid信息，请检查...`)
     }
     // 缓存ckData，供后续缓存使用
     // ltuid关系存储到与server无关的cache中，方便后续检索
@@ -308,8 +304,11 @@ export default class MysUser extends BaseModel {
 
   // 检查指定uid是否为当前MysUser所有
   async ownUid (uid) {
+    if (!uid) {
+      return false
+    }
     let uidArr = await this.cache.zList(tables.uid, this.ltuid) || []
-    return uidArr.includes(uid)
+    return uid && uidArr.join(',').split(',').includes(uid + '')
   }
 
   // 获取用户统计数据
@@ -399,7 +398,8 @@ export default class MysUser extends BaseModel {
     }
     let uids = []
     let ret = (msg, retUid) => {
-      return withMsg ? { msg, uids: retUid || [] } : retUid
+      retUid = lodash.map(retUid, (a) => a + '')
+      return withMsg ? { msg, uids: retUid } : retUid
     }
     if (!ltuid) {
       return ret('无ltuid', false)
@@ -436,7 +436,9 @@ export default class MysUser extends BaseModel {
     }
 
     for (let val of res.data.list) {
-      uids.push(val.game_uid * 1)
+      if (/\d{9}/.test(val.game_uid)) {
+        uids.push(val.game_uid + '')
+      }
     }
     if (uids.length > 0) {
       await redis.set(`Yz:genshin:mys:ltuid-uids:${ltuid}`, JSON.stringify(uids), { EX: 3600 * 24 * 90 })
