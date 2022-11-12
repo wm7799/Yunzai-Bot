@@ -80,9 +80,10 @@ export default class MysInfo {
   /**
    * 获取UID
    * @param e
+   * @param matchMsgUid 用于判断消息是否为uid数据
    * @returns {Promise<string|boolean|*|string>}
    */
-  static async getUid (e) {
+  static async getUid (e,matchMsgUid=true) {
     let user = await NoteUser.create(e)
     if (e.uid) {
       /** 没有绑定的自动绑定 */
@@ -110,6 +111,7 @@ export default class MysInfo {
 
     // 消息携带UID、当前用户UID、群名片携带UID 依次获取
     uid = matchUid(msg) || user.uid || matchUid(e.sender.card)
+    if(!matchMsgUid) uid=user.uid
     if (uid) {
       /** 没有绑定的自动绑定 */
       return await user.setRegUid(uid, false)
