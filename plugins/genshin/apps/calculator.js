@@ -25,14 +25,14 @@ export class calculator extends plugin {
 		  fnc: 'blueprintHelp'
 		},
 		{
-		  reg: '^#*尘歌壶模数(\\d*)$',
+		  reg: '^#*尘歌壶模数(\\d{10,15})$',
 		  fnc: 'Blueprint'
 		},
       ]
     })
   }
  async blueprintHelp (e) {
-    let msg = '#尘歌壶模数\n指令：#尘歌壶模数\n示例：#尘歌壶模数123456\n参数为模数id'
+    let msg = '#尘歌壶模数\n指令：#尘歌壶模数\n示例：#尘歌壶模数123456\n参数为模数id(10-15位数字)'
     await e.reply(msg)
     return true
   }
@@ -43,7 +43,7 @@ export class calculator extends plugin {
     return true
   }
   async Blueprint(){
-	  let role = this.e.msg.match(/\d+/g);
+	  let role = this.e.msg.replace(/#/,'').match(/\d+/g);
 	  let data = await new Blueprint(this.e).get(role)
 	  if (!data) return
 	  

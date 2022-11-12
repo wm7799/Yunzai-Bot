@@ -8,7 +8,7 @@ export default class blueprint extends base {
   constructor (e) {
     super(e)
     this.model = 'blueprint'
-    this.checkMsg = '设置尘歌壶模数有误\n指令：#尘歌壶模数\n示例：#尘歌壶模数123456\n参数为模数id'
+    this.checkMsg = '设置尘歌壶模数有误\n指令：#尘歌壶模数\n示例：#尘歌壶模数123456\n参数为模数id(10-15位数字)'
   }
 
   async get (role) {
