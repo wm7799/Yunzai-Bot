@@ -67,7 +67,7 @@ export class user extends plugin {
   accept () {
     if (!this.e.msg) return
 
-    if (this.e.msg.includes('ltoken') && this.e.msg.includes('ltuid')) {
+    if (/(ltoken|ltoken_v2)/.test(this.e.msg)&& this.e.msg.includes('ltuid')) {
       if (this.e.isGroup) {
         this.reply('请私聊发送cookie', false, { at: true })
         return true
