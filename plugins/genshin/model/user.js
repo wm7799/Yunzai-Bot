@@ -40,7 +40,7 @@ export default class User extends base {
     let ck = this.e.ck.replace(/#|'|"/g, '')
     let param = {}
     ck.split(';').forEach((v) => {
-      let tmp = lodash.trim(v).split('=')
+      let tmp = lodash.trim(v).replace('=','~').split('~') //处理分割特殊cookie_token
       param[tmp[0]] = tmp[1]
     })
 
@@ -50,8 +50,8 @@ export default class User extends base {
     }
 
     this.ck = `ltoken=${param.ltoken};ltuid=${param.ltuid};cookie_token=${param.cookie_token||param.cookie_token_v2}; account_id=${param.ltuid};`
-    if (param.cookie_token_v2&&param.account_mid_v2){ //account_mid_v2 为版本必须带的字段，不带的话会一直提示绑定cookie失败 请重新登录
-      this.ck = `ltoken_v2=${param.ltoken_v2};ltuid=${param.ltuid};cookie_token_v2=${param.cookie_token_v2}; account_id_v2=${param.ltuid};account_mid_v2=${param.account_mid_v2}`
+    if (param.cookie_token_v2&&(param.account_mid_v2||param.ltmid_v2)){ //account_mid_v2 为版本必须带的字段，不带的话会一直提示绑定cookie失败 请重新登录
+      this.ck = `ltoken_v2=${param.ltoken_v2};ltuid=${param.ltuid};cookie_token_v2=${param.cookie_token_v2}; account_id_v2=${param.ltuid};account_mid_v2=${param.account_mid_v2||param.ltmid_v2}`
     }
     /** 拼接ck */
     this.ltuid = param.ltuid
