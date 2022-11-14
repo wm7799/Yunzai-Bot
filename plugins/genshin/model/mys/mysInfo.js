@@ -25,7 +25,7 @@ export default class MysInfo {
     }
     // ck对应MysUser对象
     this.ckUser = null
-    this.auth = ['dailyNote', 'bbs_sign_info', 'bbs_sign_home', 'bbs_sign', 'ys_ledger', 'compute', 'avatarSkill', 'detail']
+    this.auth = ['dailyNote', 'bbs_sign_info', 'bbs_sign_home', 'bbs_sign', 'ys_ledger', 'compute', 'avatarSkill', 'detail','blueprint']
   }
 
   static async init (e, api) {

@@ -25,7 +25,7 @@ export class calculator extends plugin {
 		  fnc: 'blueprintHelp'
 		},
 		{
-		  reg: '^#*尘歌壶模数(\\d{10,15})$',
+		  reg: '^#*尘歌壶(模数|养成|养成计算)(\\d{10,15})$',
 		  fnc: 'Blueprint'
 		},
       ]
