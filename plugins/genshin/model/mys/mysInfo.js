@@ -80,11 +80,12 @@ export default class MysInfo {
   /**
    * 获取UID
    * @param e
+   * @param matchMsgUid 用于判断消息是否为uid数据
    * @returns {Promise<string|boolean|*|string>}
    */
-  static async getUid (e) {
+  static async getUid (e,matchMsgUid=true) {
     let user = await NoteUser.create(e)
-    if (e.uid) {
+    if (e.uid&&matchMsgUid) {
       /** 没有绑定的自动绑定 */
       return await user.setRegUid(e.uid, false)
     }
@@ -110,6 +111,7 @@ export default class MysInfo {
 
     // 消息携带UID、当前用户UID、群名片携带UID 依次获取
     uid = matchUid(msg) || user.uid || matchUid(e.sender.card)
+    if(!matchMsgUid) uid=user.uid
     if (uid) {
       /** 没有绑定的自动绑定 */
       return await user.setRegUid(uid, false)
@@ -370,6 +372,9 @@ export default class MysInfo {
       case -1002:
         if (res.api === 'detail') res.retcode = 0
         break
+      case 1034:
+       this.e.reply(`米游社接口遇见验证码，请上米游社通过验证码`)
+       break;
       default:
         this.e.reply(`米游社接口报错，暂时无法查询：${res.message || 'error'}`)
         break
