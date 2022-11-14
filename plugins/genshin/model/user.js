@@ -49,12 +49,12 @@ export default class User extends base {
       return
     }
 
-    this.ck = `ltoken=${param.ltoken};ltuid=${param.ltuid};cookie_token=${param.cookie_token||param.cookie_token_v2}; account_id=${param.ltuid};`
+    this.ck = `ltoken=${param.ltoken};ltuid=${param.ltuid||param.login_uid};cookie_token=${param.cookie_token||param.cookie_token_v2}; account_id=${param.ltuid||param.login_uid};`
     if (param.cookie_token_v2&&(param.account_mid_v2||param.ltmid_v2)){ //account_mid_v2 为版本必须带的字段，不带的话会一直提示绑定cookie失败 请重新登录
-      this.ck = `ltoken_v2=${param.ltoken_v2};ltuid=${param.ltuid};cookie_token_v2=${param.cookie_token_v2}; account_id_v2=${param.ltuid};account_mid_v2=${param.account_mid_v2||param.ltmid_v2}`
+      this.ck = `ltoken_v2=${param.ltoken_v2};ltuid=${param.ltuid||param.login_uid};cookie_token_v2=${param.cookie_token_v2}; account_id_v2=${param.ltuid||param.login_uid};account_mid_v2=${param.account_mid_v2||param.ltmid_v2}`
     }
     /** 拼接ck */
-    this.ltuid = param.ltuid
+    this.ltuid = param.ltuid||param.login_uid
 
     /** 米游币签到字段 */
     this.login_ticket = param.login_ticket ?? ''

@@ -66,8 +66,8 @@ export class user extends plugin {
   /** 接受到消息都会执行一次 */
   accept () {
     if (!this.e.msg) return
-
-    if (/(ltoken|ltoken_v2)/.test(this.e.msg)&& this.e.msg.includes('ltuid')) {
+	//由于手机端米游社网页可能获取不到ltuid 可以尝试在通行证页面获取login_uid
+    if (/(ltoken|ltoken_v2)/.test(this.e.msg)&& /(ltuid|login_uid)/.test(this.e.msg)) {
       if (this.e.isGroup) {
         this.reply('请私聊发送cookie', false, { at: true })
         return true
@@ -99,7 +99,7 @@ export class user extends plugin {
 
   /** 未登录ck */
   async noLogin () {
-    this.reply('绑定cookie失败\n请先【登录米游社】再获取cookie')
+    this.reply('绑定cookie失败\n请先【登录米游社】或【登录通行证】再获取cookie')
   }
 
   /** #ck代码 */
