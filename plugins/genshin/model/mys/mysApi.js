@@ -90,15 +90,15 @@ export default class MysApi {
         url: `${host}event/e20200928calculate/v2/compute`,
         body: data
       },
-	  blueprintCompute: {
-	    url: `${host}event/e20200928calculate/v1/furniture/compute`,
-	    body: data
-	  },
-	  /** 养成计算器 */
-	  blueprint: {
-	    url: `${host}event/e20200928calculate/v1/furniture/blueprint`,
-	    query: `share_code=${data.share_code}&region=${this.server}`
-	  },
+      blueprintCompute: {
+        url: `${host}event/e20200928calculate/v1/furniture/compute`,
+        body: data
+      },
+      /** 养成计算器 */
+      blueprint: {
+        url: `${host}event/e20200928calculate/v1/furniture/blueprint`,
+        query: `share_code=${data.share_code}&region=${this.server}`
+      },
       /** 角色技能 */
       avatarSkill: {
         url: `${host}event/e20200928calculate/v1/avatarSkill/list`,
@@ -122,14 +122,14 @@ export default class MysApi {
       urlMap.avatarSkill.query = `lang=zh-cn&avatar_id=${data.avatar_id}`
 
       urlMap.compute.url = 'https://sg-public-api.hoyolab.com/event/calculateos/compute'// 已支持养成计算
-	  
-	  urlMap.blueprint.url ='https://sg-public-api.hoyolab.com/event/calculateos/furniture/blueprint'
-      urlMap.blueprint.query=`share_code=${data.share_code}&region=${this.server}&lang=zh-cn`
-	  
-	  urlMap.blueprintCompute.url='https://sg-public-api.hoyolab.com/event/calculateos/furniture/compute'
-	  urlMap.blueprintCompute.body={lang:'zh-cn',...data}
-	  
-	  urlMap.ys_ledger.url = 'https://hk4e-api-os.mihoyo.com/event/ysledgeros/month_info'// 支持了国际服札记
+
+      urlMap.blueprint.url = 'https://sg-public-api.hoyolab.com/event/calculateos/furniture/blueprint'
+      urlMap.blueprint.query = `share_code=${data.share_code}&region=${this.server}&lang=zh-cn`
+
+      urlMap.blueprintCompute.url = 'https://sg-public-api.hoyolab.com/event/calculateos/furniture/compute'
+      urlMap.blueprintCompute.body = { lang: 'zh-cn', ...data }
+
+      urlMap.ys_ledger.url = 'https://hk4e-api-os.mihoyo.com/event/ysledgeros/month_info'// 支持了国际服札记
       urlMap.ys_ledger.query = `lang=zh-cn&month=${data.month}&uid=${this.uid}&region=${this.server}`
     }
 
@@ -186,7 +186,7 @@ export default class MysApi {
       agent: await this.getAgent(),
       timeout: 10000
     }
-    
+
     if (body) {
       param.method = 'post'
       param.body = body
