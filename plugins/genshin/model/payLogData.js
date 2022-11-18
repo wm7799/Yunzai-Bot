@@ -78,7 +78,7 @@ export class PayData {
                 return 1
             }
         })
-        // 
+        // 单双倍结晶数
         const price = [680, 300, 8080, 3880, 2240, 1090, 330, 60]
         const doublePrice = [0, 0, 12960, 6560, 3960, 1960, 600, 120]
         let month = 0
