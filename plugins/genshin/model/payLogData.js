@@ -60,7 +60,6 @@ export class PayData {
         // 获取数据
         let isSucceed = await this.getOringinalData()
         // 判断数据是否获取成功
-        console.log(isSucceed);
         if (isSucceed?.errorMsg) return isSucceed
         await this.getPrimogemLog()
         // 获取uid，并判断零氪党的情况
