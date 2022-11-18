@@ -234,7 +234,7 @@ export default class MysApi {
       client_type: 5,
       Origin: 'https://webstatic.mihoyo.com',
       X_Requested_With: 'com.mihoyo.hyperion',
-      Referer: 'https://webstatic.mihoyo.com/bbs/event/signin-ys/index.html?bbs_auth_required=true&act_id=e202009291139501&utm_source=bbs&utm_medium=mys&utm_campaign=icon'
+      Referer: 'https://webstatic.mihoyo.com'
     }
     const os = {
       app_version: '2.9.0',
