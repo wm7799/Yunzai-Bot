@@ -24,7 +24,7 @@ export default class Calculator extends base {
       return false
     }
 
-    this.mysApi = new MysApi(ck.uid, ck.ck, { log: true })
+    this.mysApi = new MysApi(uid, ck.ck, { log: true })
 
     /** 获取角色数据 */
     let character = await this.mysApi.getData('character')
