@@ -38,12 +38,12 @@ export class outNotice extends plugin {
   constructor () {
     super({
       name: '退群通知',
-      dsc: 'xxx永远离开了我们',
+      dsc: 'xx退群了',
       event: 'notice.group.decrease'
     })
 
     /** 退群提示词 */
-    this.tips = '永远离开了我们。。'
+    this.tips = '退群了'
   }
 
   async accept () {
