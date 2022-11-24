@@ -76,6 +76,7 @@ export default class User extends base {
       if (userFullInfo?.data?.user_info) {
         let userInfo = userFullInfo?.data?.user_info
         this.ltuid = userInfo.uid
+        this.ck = `${this.ck}ltuid=${this.ltuid};`
       } else {
         logger.mark(`绑定cookie错误：${userFullInfo.message || 'cookie错误'}`)
         await this.e.reply(`绑定cookie失败：${userFullInfo.message || 'cookie错误'}`)
