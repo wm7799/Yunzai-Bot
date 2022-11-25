@@ -40,21 +40,25 @@ export default class User extends base {
     let ck = this.e.ck.replace(/#|'|"/g, '')
     let param = {}
     ck.split(';').forEach((v) => {
-      let tmp = lodash.trim(v).replace('=','~').split('~') //处理分割特殊cookie_token
+      // 处理分割特殊cookie_token
+      let tmp = lodash.trim(v).replace('=', '~').split('~')
       param[tmp[0]] = tmp[1]
     })
 
-    if (!param.cookie_token&&!param.cookie_token_v2) {
+    if (!param.cookie_token && !param.cookie_token_v2) {
       await this.e.reply('发送cookie不完整\n请退出米游社【重新登录】，刷新完整cookie')
       return
     }
 
-    this.ck = `ltoken=${param.ltoken};ltuid=${param.ltuid||param.login_uid};cookie_token=${param.cookie_token||param.cookie_token_v2}; account_id=${param.ltuid||param.login_uid};`
-    if (param.cookie_token_v2&&(param.account_mid_v2||param.ltmid_v2)){ //account_mid_v2 为版本必须带的字段，不带的话会一直提示绑定cookie失败 请重新登录
-      this.ck = `ltoken_v2=${param.ltoken_v2};ltuid=${param.ltuid||param.login_uid};cookie_token_v2=${param.cookie_token_v2}; account_id_v2=${param.ltuid||param.login_uid};account_mid_v2=${param.account_mid_v2||param.ltmid_v2}`
+    this.ck = `ltoken=${param.ltoken};ltuid=${param.ltuid || param.login_uid};cookie_token=${param.cookie_token || param.cookie_token_v2}; account_id=${param.ltuid || param.login_uid};`
+    let flagV2 = false
+    if (param.cookie_token_v2 && (param.account_mid_v2 || param.ltmid_v2)) { //
+      // account_mid_v2 为版本必须带的字段，不带的话会一直提示绑定cookie失败 请重新登录
+      flagV2 = true
+      this.ck = `account_mid_v2=${param.account_mid_v2};cookie_token_v2=${param.cookie_token_v2};ltoken_v2=${param.ltoken_v2};ltmid_v2=${param.ltmid_v2};`
     }
     /** 拼接ck */
-    this.ltuid = param.ltuid||param.login_uid
+    this.ltuid = param.ltuid || param.ltmid_v2
 
     /** 米游币签到字段 */
     this.login_ticket = param.login_ticket ?? ''
@@ -64,6 +68,20 @@ export default class User extends base {
       logger.mark(`绑定cookie错误：${this.checkMsg || 'cookie错误'}`)
       await this.e.reply(`绑定cookie失败：${this.checkMsg || 'cookie错误'}`)
       return
+    }
+
+    if (flagV2) {
+      // 获取米游社通行证id
+      let userFullInfo = await this.getUserInfo()
+      if (userFullInfo?.data?.user_info) {
+        let userInfo = userFullInfo?.data?.user_info
+        this.ltuid = userInfo.uid
+        this.ck = `${this.ck}ltuid=${this.ltuid};`
+      } else {
+        logger.mark(`绑定cookie错误：${userFullInfo.message || 'cookie错误'}`)
+        await this.e.reply(`绑定cookie失败：${userFullInfo.message || 'cookie错误'}`)
+        return
+      }
     }
 
     logger.mark(`${this.e.logFnc} 检查cookie正常 [uid:${this.uid}]`)
@@ -147,6 +165,11 @@ export default class User extends base {
 
   async getGameRoles (server = 'mys') {
     return await MysUser.getGameRole(this.ck, server)
+  }
+
+  // 获取米游社通行证id
+  async getUserInfo (server = 'mys') {
+    return await MysUser.getUserFullInfo(this.ck, server)
   }
 
   /** 保存ck */

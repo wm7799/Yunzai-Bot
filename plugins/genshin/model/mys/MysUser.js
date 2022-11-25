@@ -383,6 +383,29 @@ export default class MysUser extends BaseModel {
     return res
   }
 
+  // 获取米游社通行证id
+  static async getUserFullInfo (ck, serv = 'mys') {
+    let url = {
+      mys: 'https://bbs-api.mihoyo.com/user/wapi/getUserFullInfo?gids=2',
+      hoyolab: ''
+    }
+    let res = await fetch(url[serv], {
+      method: 'get',
+      headers: {
+        Cookie: ck,
+        Accept: 'application/json, text/plain, */*',
+        Connection: 'keep-alive',
+        Host: 'bbs-api.mihoyo.com',
+        Origin: 'https://m.bbs.mihoyo.com',
+        Referer: ' https://m.bbs.mihoyo.com/'
+      }
+    })
+    if (!res.ok) return res
+    res = await res.json()
+
+    return res
+  }
+
   /**
    * 获取ck对应uid列表
    * @param ck 需要获取的ck
