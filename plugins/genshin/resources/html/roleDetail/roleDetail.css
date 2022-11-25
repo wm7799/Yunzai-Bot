@@ -1015,3 +1015,16 @@ body {
   background-size: 100%;
   background-position: 60px 0px;
 }
+.莱依拉_bg1 {
+  background: url(../../../../../data/roleDetail/莱依拉1.png) no-repeat;
+  background-size: auto 300px;
+  background-position: 100% 0%;
+}
+.莱依拉_drag {
+  background-position: -150px -55px;
+}
+.莱依拉_bg2 {
+  background-image: url(../../../../../data/roleDetail/莱依拉2.png);
+  background-size: 100%;
+  background-position: 90px 0px;
+}
