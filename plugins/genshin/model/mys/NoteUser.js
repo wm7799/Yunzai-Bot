@@ -279,10 +279,10 @@ export default class NoteUser extends BaseModel {
         } else if (status === 2) {
           // status为2时无法查询角色，删除ck cache
           // 因仍能查询体力，故保留ck记录不直接删除
-          await mysUser.del()
+          // await mysUser.del()
         } else if (status === 3) {
           // status为3时CK完全失效，用户删除此CK
-          await this.delCk(ltuid)
+          // await this.delCk(ltuid)
         }
       }
       ret.push({
