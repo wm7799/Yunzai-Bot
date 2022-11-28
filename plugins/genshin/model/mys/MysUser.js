@@ -106,7 +106,6 @@ export default class MysUser extends BaseModel {
 
   // 根据uid获取查询MysUser
   static async getByQueryUid (uid, onlySelfCk = false) {
-    let cache = DailyCache.create()
     let servCache = DailyCache.create(uid)
     // 查找已经查询过的ltuid || 分配最少查询的ltuid
 
@@ -501,7 +500,7 @@ export default class MysUser extends BaseModel {
     let noteRet = await mys.getData('dailyNote')
     if (noteRet.retcode !== 0 || lodash.isEmpty(noteRet.data)) {
       let msg = noteRet.message !== 'OK' ? noteRet.message : 'CK失效'
-      return err(`${msg || 'CK失效'}，无法查询体力及角色信息`, 3)
+      return err(`${msg || 'CK失效或验证码'}，无法查询体力及角色信息`, 3)
     }
 
     // 角色查询
