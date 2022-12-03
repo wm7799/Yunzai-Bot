@@ -373,7 +373,8 @@ export default class MysInfo {
         if (res.api === 'detail') res.retcode = 0
         break
       case 1034:
-        this.e.reply('米游社接口遇见验证码，请上米游社通过验证码')
+        logger.mark(`[米游社查询失败][uid:${this.uid}][qq:${this.userId}] 遇到验证码`)
+        this.e.reply('米游社查询遇到验证码，请稍后再试')
         break
       default:
         this.e.reply(`米游社接口报错，暂时无法查询：${res.message || 'error'}`)
