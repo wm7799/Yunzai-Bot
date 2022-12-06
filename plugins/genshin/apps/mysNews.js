@@ -23,7 +23,7 @@ export class mysNews extends plugin {
           fnc: 'mysSearch'
         },
         {
-          reg: '(.*)bbs.mihoyo.com/ys(.*)/article(.*)',
+          reg: '(.*)(bbs.mihoyo.com|miyoushe.com)/ys(.*)/article(.*)',
           fnc: 'mysUrl'
         },
         {
