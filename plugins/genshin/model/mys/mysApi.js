@@ -103,6 +103,11 @@ export default class MysApi {
       avatarSkill: {
         url: `${host}event/e20200928calculate/v1/avatarSkill/list`,
         query: `avatar_id=${data.avatar_id}`
+      },
+      /** 七圣召唤数据 */
+      basicInfo: {
+        url: `${hostRecord}game_record/app/genshin/api/gcg/basicInfo`,
+        query: `role_id=${this.uid}&server=${this.server}`
       }
     }
     if (this.server.startsWith('os')) {

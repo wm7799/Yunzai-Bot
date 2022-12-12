@@ -62,7 +62,30 @@
 
         {{/each}}
       </div>
-      {{/if}} {{if abyss.time}}
+      {{/if}} {{if basicInfo.level>0}}
+      <div class="basicInfo">
+        <div class="tab_lable">七圣召唤</div>
+        <div class="basicInfo_header">
+          <div class="basicInfo_icon"><span>{{basicInfo.level}}</span></div>
+          <div class="basicInfo_right">
+                <div class="item">
+                  <div>已收集角色牌</div>
+                  <div>{{basicInfo.avatar_card_num_gained}}/{{basicInfo.avatar_card_num_total}}</div>
+                </div>
+                <div class="item">
+                  <div>已收集行动牌</div>
+                  <div>{{basicInfo.action_card_num_gained}}/{{basicInfo.action_card_num_total}}</div>
+                </div>
+            </div>
+        </div>
+        <div class="basicInfo_covers"> 
+          {{each basicInfo.covers val}}
+          <div><img src="{{val.image}}" alt=""> </div>
+          {{/each}}</div>
+       
+      </div>
+      {{/if}}
+      {{if abyss.time}}
       <div class="abyss_box">
         <div class="row">
           <div class="item">
