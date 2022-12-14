@@ -42,7 +42,7 @@ export class setPubCk extends plugin {
   async pubCk () {
     let msg = this.e.msg
 
-    if (!msg.includes('ltoken') || !msg.includes('ltuid')) {
+    if (!(/(ltoken|ltoken_v2)/.test(this.e.msg) && /(ltuid|ltmid_v2|account_mid_v2)/.test(this.e.msg))) {
       this.e.reply('cookie错误，请发送正确的cookie')
       return true
     }
@@ -58,7 +58,7 @@ export class setPubCk extends plugin {
 
     this.ck = ''
     lodash.forEach(param, (v, k) => {
-      if (['ltoken', 'ltuid', 'cookie_token', 'account_id'].includes(k)) {
+      if (['ltoken', 'ltuid', 'cookie_token', 'account_id', 'cookie_token_v2', 'account_mid_v2', 'ltmid_v2', 'ltoken_v2'].includes(k)) {
         this.ck += `${k}=${v};`
       }
     })
@@ -67,13 +67,30 @@ export class setPubCk extends plugin {
     if (!await this.checkCk()) {
       logger.mark(`配置公共cookie错误：${this.checkMsg || 'cookie错误'}`)
       await this.e.reply(`配置公共cookie错误：${this.checkMsg || 'cookie错误'}`)
+      return
+    }
+
+    this.ltuid = param.ltuid
+    // 判断是否是v2版ck
+    if (param.cookie_token_v2 && (param.account_mid_v2 || param.ltoken_v2) && !(/(\d{4,9})/g).test(this.ltuid)) {
+      // 获取米游社通行证id
+      let userFullInfo = await this.getUserInfo()
+      if (userFullInfo?.data?.user_info) {
+        let userInfo = userFullInfo?.data?.user_info
+        this.ltuid = userInfo.uid
+        this.ck = `${this.ck}ltuid=${this.ltuid};`
+      } else {
+        logger.mark(`配置公共cookie错误：${userFullInfo.message || 'cookie错误'}`)
+        await this.e.reply(`配置公共cookie错误：${userFullInfo.message || 'cookie错误'}`)
+        return
+      }
     }
 
     let ckArr = GsCfg.getConfig('mys', 'pubCk') || []
 
     /** 判断是否重复 */
     for (let ck of ckArr) {
-      if (ck.includes(param.ltuid)) {
+      if (ck.includes(this.ltuid)) {
         await this.e.reply('配置公共cookie错误：该ck已配置')
         return
       }
@@ -98,6 +115,33 @@ export class setPubCk extends plugin {
     }
 
     return true
+  }
+
+  // 获取米游社通行证id
+  async getUserInfo (server = 'mys') {
+    try {
+      const that = this
+      let url = {
+        mys: 'https://bbs-api.mihoyo.com/user/wapi/getUserFullInfo?gids=2',
+        hoyolab: ''
+      }
+      let res = await fetch(url[server], {
+        method: 'get',
+        headers: {
+          Cookie: that.ck,
+          Accept: 'application/json, text/plain, */*',
+          Connection: 'keep-alive',
+          Host: 'bbs-api.mihoyo.com',
+          Origin: 'https://m.bbs.mihoyo.com',
+          Referer: ' https://m.bbs.mihoyo.com/'
+        }
+      })
+      if (!res.ok) return res
+      res = await res.json()
+      return res
+    } catch (e) {
+      return null
+    }
   }
 
   save (data) {
