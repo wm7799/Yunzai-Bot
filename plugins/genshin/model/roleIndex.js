@@ -40,7 +40,7 @@ export default class RoleIndex extends base {
       index: '',
       spiralAbyss: { schedule_type: 1 },
       character: '',
-      basicInfo:''
+      basicInfo: ''
     }
     let res = await MysInfo.get(this.e, ApiData)
 
@@ -48,7 +48,7 @@ export default class RoleIndex extends base {
 
     let ret = []
     res.forEach(v => ret.push(v.data))
-    
+
     /** 截图数据 */
     let data = {
       quality: 80,
@@ -60,7 +60,7 @@ export default class RoleIndex extends base {
   }
 
   dealData (data) {
-    let [resIndex, resAbyss, resDetail,basicInfo] = data
+    let [resIndex, resAbyss, resDetail, basicInfo] = data
 
     let avatars = resDetail.avatars || []
     let roleArr = avatars
@@ -180,7 +180,8 @@ export default class RoleIndex extends base {
       uid: this.e.uid,
       saveId: this.e.uid,
       activeDay: this.dayCount(stats.active_day_number),
-      line,basicInfo,
+      line,
+      basicInfo,
       avatars,
       abyss,
       headIndexStyle: this.headIndexStyle

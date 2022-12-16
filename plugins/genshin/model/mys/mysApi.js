@@ -104,6 +104,14 @@ export default class MysApi {
         url: `${host}event/e20200928calculate/v1/avatarSkill/list`,
         query: `avatar_id=${data.avatar_id}`
       },
+      createVerification: {
+        url: `${hostRecord}game_record/app/card/wapi/createVerification`,
+        query: 'is_high=true'
+      },
+      verifyVerification: {
+        url: `${hostRecord}game_record/app/card/wapi/verifyVerification`,
+        body: data
+      },
       /** 七圣召唤数据 */
       basicInfo: {
         url: `${hostRecord}game_record/app/genshin/api/gcg/basicInfo`,
