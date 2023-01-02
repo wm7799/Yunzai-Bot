@@ -142,25 +142,25 @@ export default class MysNews extends base {
   }
 
   postApi (type, data) {
-    let host = 'https://bbs-api.mihoyo.com/'
+    let host = 'https://bbs-api-static.mihoyo.com/'
     let param = []
     lodash.forEach(data, (v, i) => param.push(`${i}=${v}`))
     param = param.join('&')
     switch (type) {
       // 搜索
       case 'searchPosts':
-        host += 'post/wapi/searchPosts?'
+        host = 'https://bbs-api.mihoyo.com/post/wapi/searchPosts?'
         break
-        // 帖子详情
+      // 帖子详情
       case 'getPostFull':
         host += 'post/wapi/getPostFull?'
         break
-        // 公告列表
+      // 公告列表
       case 'getNewsList':
         host += 'post/wapi/getNewsList?'
         break
       case 'emoticon':
-        host = 'https://bbs-api-static.mihoyo.com/misc/api/emoticon_set?'
+        host += 'misc/api/emoticon_set?'
         break
     }
     return host + param
