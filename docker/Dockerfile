@@ -1,4 +1,4 @@
-FROM node:current-alpine
+FROM node:lts-alpine
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
