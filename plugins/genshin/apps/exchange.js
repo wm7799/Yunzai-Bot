@@ -27,7 +27,7 @@ export class exchange extends plugin {
 
     /** index info */
     let index = await this.getData('index')
-    if (!index) return
+    if (!index || !index.data) return
 
     this.mi18n = index.data.mi18n
     let mi18n = await this.getData('mi18n')
@@ -86,7 +86,7 @@ export class exchange extends plugin {
 
     let post = lodash.map(ret.data.posts, 'post')
     post = lodash.maxBy(post, 'created_at')
-    let actId = post.content.replace('[链接]', '')
+    let actId = post.content.replace(/\[链接\]|\[图片\]/g, '').trim()
     if (!actId) return false
 
     return actId
