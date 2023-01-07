@@ -126,7 +126,12 @@ export class strategy extends plugin {
     let match = /^#?设置默认攻略([1-4])?$/.exec(this.e.msg)
     let set = './plugins/genshin/config/mys.set.yaml'
     let config = fs.readFileSync(set, 'utf8')
-    config = config.replace(/defaultSource: [1-4]/g, 'defaultSource: ' + Number(match[1]))
+    let num = Number(match[1])
+    if(isNaN(num)) {
+		await this.e.reply('默认攻略设置方式为: \n#设置默认攻略[1234] \n 请增加数字1-4其中一个')
+		return
+    }
+    config = config.replace(/defaultSource: [1-4]/g, 'defaultSource: ' + num)
     fs.writeFileSync(set, config, 'utf8')
 
     await this.e.reply('默认攻略已设置为: ' + match[1])
