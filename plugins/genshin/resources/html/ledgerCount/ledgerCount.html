@@ -68,6 +68,9 @@
         <div class="tab_lable">详细统计</div>
         <div id="chartContainer2"></div>
       </div>
+      {{if hasMore }}
+      <div class="hasMore">*该数据只显示最近12个月</div>
+      {{/if}}
       <div class="logo">Created By Yunzai-Bot</div>
     </div>
   </body>
@@ -94,6 +97,7 @@
       },
       xAxis: {
         label: {
+          autoHide: false,
           formatter: (v) => {
             return v + "月";
           },
