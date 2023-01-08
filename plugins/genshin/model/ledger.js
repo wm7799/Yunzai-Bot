@@ -132,7 +132,7 @@ export default class Ledger extends base {
       NoteData = JSON.parse(fs.readFileSync(dataPath, 'utf8'))
     }
     // 当前年
-    let NowYear = moment().year()
+    let NowYear = Number(moment().year())
     let NowMonth = Number(moment().month()) + 1
 
     // 获取前三个月
