@@ -2,6 +2,7 @@ import plugin from '../../../lib/plugins/plugin.js'
 import common from '../../../lib/common/common.js'
 import fetch from 'node-fetch'
 import lodash from 'lodash'
+import MysInfo from '../model/mys/mysInfo.js'
 
 export class exchange extends plugin {
   constructor (e) {
@@ -14,6 +15,10 @@ export class exchange extends plugin {
         {
           reg: '^#*(直播|前瞻)*兑换码$',
           fnc: 'getCode'
+        },
+        {
+          reg: '#(兑换码使用|cdk-u) .+',
+          fnc: 'useCode'
         }
       ]
     })
@@ -28,7 +33,9 @@ export class exchange extends plugin {
     /** index info */
     let index = await this.getData('index')
     if (!index || !index.data) return
-
+    if(index.data === null){
+      return await this.reply(`错误：\n${index.message}`)
+    }
     this.mi18n = index.data.mi18n
     let mi18n = await this.getData('mi18n')
 
@@ -90,5 +97,12 @@ export class exchange extends plugin {
     if (!actId) return false
 
     return actId
+  }
+  async useCode(){
+    let cdkCode = this.e.message[0].text.split(/#(使用兑换码|cdk-u) /, 3)[2];
+    let res = await MysInfo.get(this.e, 'useCdk',{cdk:cdkCode})
+    if(res){
+      this.e.reply(`${res.data.msg}`)
+    }
   }
 }
