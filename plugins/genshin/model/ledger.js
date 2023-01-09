@@ -231,34 +231,81 @@ export default class Ledger extends base {
     return this.ledgerCountData(NoteData)
   }
 
-  ledgerCountData (NoteData) {
-    // 获取总长度
+  async ledgerCountHistory () {
+    let nowYear
+    if (this.e.msg.includes('去年')) {
+      nowYear = moment().year() - 1
+    } else if (this.e.msg.includes('今年')) {
+      nowYear = moment().year()
+    } else {
+      // 获取年份
+      nowYear = this.e.msg.match(/(\d{4})/)
+    }
+    if (nowYear) {
+      nowYear = parseInt(nowYear)
+    }
+    if (!nowYear) {
+      nowYear = moment().year()
+    }
+    this.model = 'ledgerCount'
+    let mysInfo = await MysInfo.init(this.e, 'ys_ledger')
+    let uid = mysInfo?.uid
+    if (!uid) return false
+    let dataPath = `./data/NoteData/${uid}.json`
+    let NoteData = {}
+    if (fs.existsSync(dataPath)) {
+      NoteData = JSON.parse(fs.readFileSync(dataPath, 'utf8'))
+    }
+    // console.log(NoteData)
+    if (!NoteData || lodash.isEmpty(NoteData)) {
+      this.e.reply('暂无原石数据，请先发送 #原石', false, { at: true })
+      return false
+    }
+    NoteData = NoteData[nowYear]
+    if (!NoteData) {
+      this.e.reply(`uid：${uid} ${nowYear}年无原石统计数据！`, false, { at: true })
+      return false
+    }
+    lodash.forEach(NoteData, (val) => {
+      val.year = nowYear
+    })
+    /** 处理数据 */
+    return this.ledgerCountData(NoteData, String(nowYear))
+  }
+
+  ledgerCountData (NoteData, nowYear) {
     let hasMore = false
-    if (NoteData && Object.keys(NoteData) && Object.keys(NoteData).length > 0) {
-      let len = 0
-      Object.keys(NoteData).forEach((year) => {
-        let yearData = NoteData[year]
-        len += Object.keys(yearData).length
-      })
-      hasMore = len >= 12
-    }
-
-    // 获取最近12个月的数据
-    const newNoteData = []
-    for (let i = 0; i < 12; i++) {
-      let month = Number(moment().month()) + 1 - i
-      let year = Number(moment().year())
-
-      if (month <= 0) {
-        month = 12 + month
-        year--
+    let yearText
+    if (!nowYear) {
+      // 获取总长度
+      if (NoteData && Object.keys(NoteData) && Object.keys(NoteData).length > 0) {
+        let len = 0
+        Object.keys(NoteData).forEach((year) => {
+          let yearData = NoteData[year]
+          len += Object.keys(yearData).length
+        })
+        hasMore = len >= 12
       }
-      if (NoteData[year] && NoteData[year][month]) {
-        NoteData[year][month].year = year
-        newNoteData.push(NoteData[year][month])
+
+      // 获取最近12个月的数据
+      const newNoteData = []
+      for (let i = 0; i < 12; i++) {
+        let month = Number(moment().month()) + 1 - i
+        let year = Number(moment().year())
+
+        if (month <= 0) {
+          month = 12 + month
+          year--
+        }
+        if (NoteData[year] && NoteData[year][month]) {
+          NoteData[year][month].year = year
+          newNoteData.push(NoteData[year][month])
+        }
       }
+      NoteData = newNoteData
+    } else {
+      yearText = `${nowYear}年-`
     }
-    NoteData = newNoteData
 
     if (!NoteData || lodash.isEmpty(NoteData)) return
 
@@ -266,7 +313,8 @@ export default class Ledger extends base {
       allPrimogems: 0,
       allMora: 0,
       primogemsMonth: [],
-      moraMonth: []
+      moraMonth: [],
+      yearText
     }
 
     lodash.forEach(NoteData, (val) => {

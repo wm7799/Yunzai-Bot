@@ -14,7 +14,7 @@
     <div class="container" id="container">
       <div class="head_box">
         <div class="id_text">ID: {{uid}}</div>
-        <h2 class="day_text">原石统计</h2>
+        <h2 class="day_text">{{yearText}}原石统计</h2>
         <img class="genshin_logo" src="{{pluResPath}}img/other/原神.png" />
       </div>
       <div class="data_box">
@@ -91,9 +91,11 @@
       renderer: "svg",
       padding: [40, 10, 30, 52],
       label: {
+        position: "top",
         style: {
           fontFamily: "tttgbnumber",
         },
+        offsetY: 10,
       },
       xAxis: {
         label: {
