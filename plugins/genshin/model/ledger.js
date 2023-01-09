@@ -131,14 +131,15 @@ export default class Ledger extends base {
     if (fs.existsSync(dataPath)) {
       NoteData = JSON.parse(fs.readFileSync(dataPath, 'utf8'))
     }
-
-    let year = Number(moment().year())
+    // 当前年
+    let NowYear = Number(moment().year())
     let NowMonth = Number(moment().month()) + 1
 
     // 获取前三个月
     let monthArr = [11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].splice(NowMonth - 1, 3)
 
     for (let month of monthArr) {
+      let year = NowYear
       // 上一年
       if (NowMonth <= 2 && month >= 11) {
         year--
@@ -231,8 +232,33 @@ export default class Ledger extends base {
   }
 
   ledgerCountData (NoteData) {
-    let year = Number(moment().year())
-    NoteData = NoteData[year]
+    // 获取总长度
+    let hasMore = false
+    if (NoteData && Object.keys(NoteData) && Object.keys(NoteData).length > 0) {
+      let len = 0
+      Object.keys(NoteData).forEach((year) => {
+        let yearData = NoteData[year]
+        len += Object.keys(yearData).length
+      })
+      hasMore = len >= 12
+    }
+
+    // 获取最近12个月的数据
+    const newNoteData = []
+    for (let i = 0; i < 12; i++) {
+      let month = Number(moment().month()) + 1 - i
+      let year = Number(moment().year())
+
+      if (month <= 0) {
+        month = 12 + month
+        year--
+      }
+      if (NoteData[year] && NoteData[year][month]) {
+        NoteData[year][month].year = year
+        newNoteData.push(NoteData[year][month])
+      }
+    }
+    NoteData = newNoteData
 
     if (!NoteData || lodash.isEmpty(NoteData)) return
 
@@ -249,12 +275,14 @@ export default class Ledger extends base {
       // 柱状图数据
       data.primogemsMonth.push({
         value: val.month_data.current_primogems,
-        month: val.data_month.toString(),
+        month: String(val.data_month),
+        year: String(val.year),
         name: '原石'
       })
       data.moraMonth.push({
         value: (val.month_data.current_mora / 1000).toFixed(0),
-        month: val.data_month.toString(),
+        month: String(val.data_month),
+        year: String(val.year),
         name: '摩拉'
       })
     })
@@ -267,10 +295,9 @@ export default class Ledger extends base {
     // 原石最多
     data.maxPrimogems = lodash.maxBy(data.primogemsMonth, 'value')
     data.maxMora = lodash.maxBy(data.moraMonth, 'value')
-
-    // 按月份重新排序
-    data.primogemsMonth = lodash.sortBy(data.primogemsMonth, (o) => {
-      return Number(o.month)
+    // 按年份月份排序
+    data.primogemsMonth = lodash.sortBy(data.primogemsMonth, item => {
+      return Number(item.year) * 100 + Number(item.month)
     })
 
     let groupBy = lodash(NoteData).map('month_data').map('group_by').flatMap().value()
@@ -303,6 +330,7 @@ export default class Ledger extends base {
     data.color = JSON.stringify(data.color)
     data.pieData = JSON.stringify(pieData)
     data.primogemsMonth = JSON.stringify(data.primogemsMonth)
+    data.hasMore = hasMore
 
     return {
       saveId: this.e.uid,
