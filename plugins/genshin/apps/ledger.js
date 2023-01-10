@@ -27,6 +27,10 @@ export class ledger extends plugin {
         {
           reg: '^#*(原石|札记)统计$',
           fnc: 'ledgerCount'
+        },
+        {
+          reg: '^#*(去年|今年|\\d{4}年)(原石|札记)统计$',
+          fnc: 'ledgerCountHistory'
         }
       ]
     })
@@ -65,6 +69,15 @@ export class ledger extends plugin {
 
   async ledgerCount () {
     let data = await new Ledger(this.e).ledgerCount()
+    if (!data) return
+
+    /** 生成图片 */
+    let img = await puppeteer.screenshot('ledgerCount', data)
+    if (img) await this.reply(img)
+  }
+
+  async ledgerCountHistory () {
+    let data = await new Ledger(this.e).ledgerCountHistory()
     if (!data) return
 
     /** 生成图片 */
