@@ -116,6 +116,11 @@ export default class MysApi {
       basicInfo: {
         url: `${hostRecord}game_record/app/genshin/api/gcg/basicInfo`,
         query: `role_id=${this.uid}&server=${this.server}`
+      },
+      /**使用兑换码 目前仅限国际服,来自于国服的uid请求已在myinfo.js的init方法提前拦截 */
+      useCdk: {
+        url:'PLACE_HOLDER',
+        query: null
       }
     }
     if (this.server.startsWith('os')) {
@@ -144,6 +149,9 @@ export default class MysApi {
 
       urlMap.ys_ledger.url = 'https://hk4e-api-os.mihoyo.com/event/ysledgeros/month_info'// 支持了国际服札记
       urlMap.ys_ledger.query = `lang=zh-cn&month=${data.month}&uid=${this.uid}&region=${this.server}`
+
+      urlMap.useCdk.url = 'https://sg-hk4e-api.hoyoverse.com/common/apicdkey/api/webExchangeCdkey'
+      urlMap.useCdk.query = `uid=${this.uid}&region=${this.server}&lang=zh-cn&cdkey=${data.cdk}&game_biz=hk4e_global`
     }
 
     if (!urlMap[type]) return false
