@@ -181,6 +181,10 @@ export default class MysUser extends BaseModel {
       }
     } else {
       console.log(`ltuid:${this.ltuid}暂无uid信息，请检查...`)
+      // 公共ck暂无uid信息不添加
+      if (user?.qq === 'pub') {
+        return false
+      }
     }
     // 缓存ckData，供后续缓存使用
     // ltuid关系存储到与server无关的cache中，方便后续检索
