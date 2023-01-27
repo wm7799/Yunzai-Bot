@@ -99,7 +99,7 @@ export class exchange extends plugin {
     return actId
   }
   async useCode(){
-    let cdkCode = this.e.message[0].text.split(/#(使用兑换码|cdk-u) /, 3)[2];
+    let cdkCode = this.e.message[0].text.split(/#(兑换码使用|cdk-u) /, 3)[2];
     let res = await MysInfo.get(this.e, 'useCdk',{cdk:cdkCode})
     if(res){
       this.e.reply(`${res.data.msg}`)
